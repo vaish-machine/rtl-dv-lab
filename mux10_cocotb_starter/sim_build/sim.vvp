@@ -1,0 +1,38 @@
+#! /usr/bin/vvp
+:ivl_version "12.0 (stable)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision - 12;
+:vpi_module "/usr/lib/x86_64-linux-gnu/ivl/system.vpi";
+:vpi_module "/usr/lib/x86_64-linux-gnu/ivl/vhdl_sys.vpi";
+:vpi_module "/usr/lib/x86_64-linux-gnu/ivl/vhdl_textio.vpi";
+:vpi_module "/usr/lib/x86_64-linux-gnu/ivl/v2005_math.vpi";
+:vpi_module "/usr/lib/x86_64-linux-gnu/ivl/va_math.vpi";
+:vpi_module "/usr/lib/x86_64-linux-gnu/ivl/v2009.vpi";
+S_0x6058ff4995d0 .scope package, "$unit" "$unit" 2 1;
+ .timescale -9 -12;
+S_0x6058ff499760 .scope module, "mux10" "mux10" 3 5;
+ .timescale -9 -12;
+    .port_info 0 /INPUT 10 "a";
+    .port_info 1 /INPUT 10 "b";
+    .port_info 2 /INPUT 10 "sel";
+    .port_info 3 /OUTPUT 10 "y";
+o0x70c967fcf108 .functor BUFZ 10, C4<zzzzzzzzzz>; HiZ drive
+L_0x6058ff4e2440 .functor NOT 10, o0x70c967fcf108, C4<0000000000>, C4<0000000000>, C4<0000000000>;
+o0x70c967fcf0a8 .functor BUFZ 10, C4<zzzzzzzzzz>; HiZ drive
+L_0x6058ff4e2500 .functor AND 10, o0x70c967fcf0a8, L_0x6058ff4e2440, C4<1111111111>, C4<1111111111>;
+o0x70c967fcf0d8 .functor BUFZ 10, C4<zzzzzzzzzz>; HiZ drive
+L_0x6058ff4e2620 .functor AND 10, o0x70c967fcf0d8, o0x70c967fcf108, C4<1111111111>, C4<1111111111>;
+L_0x6058ff4e2710 .functor OR 10, L_0x6058ff4e2500, L_0x6058ff4e2620, C4<0000000000>, C4<0000000000>;
+v0x6058ff4c0000_0 .net *"_ivl_0", 9 0, L_0x6058ff4e2440;  1 drivers
+v0x6058ff4e1e20_0 .net *"_ivl_2", 9 0, L_0x6058ff4e2500;  1 drivers
+v0x6058ff4e1f00_0 .net *"_ivl_4", 9 0, L_0x6058ff4e2620;  1 drivers
+v0x6058ff4e1ff0_0 .net "a", 9 0, o0x70c967fcf0a8;  0 drivers
+v0x6058ff4e20d0_0 .net "b", 9 0, o0x70c967fcf0d8;  0 drivers
+v0x6058ff4e2200_0 .net "sel", 9 0, o0x70c967fcf108;  0 drivers
+v0x6058ff4e22e0_0 .net "y", 9 0, L_0x6058ff4e2710;  1 drivers
+# The file index is used to find the file name in the following table.
+:file_names 4;
+    "N/A";
+    "<interactive>";
+    "-";
+    "/home/vaish_machine/rtl-dv-lab/mux10_cocotb_starter/rtl/mux10.sv";

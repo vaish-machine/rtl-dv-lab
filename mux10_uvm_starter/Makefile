@@ -1,13 +1,23 @@
-VCS ?= vcs
-SIMV := build/mux10_uvm/simv
+SHELL := /bin/bash
+.SHELLFLAGS := -o pipefail -c
+
+VERILATOR ?= verilator
+UVM_HOME ?= $(HOME)/eda/uvm-2020.3.2/1800.2-2020.3.2/src
+SIM_DIR := sim
+OBJ_DIR := $(SIM_DIR)/build/mux10_uvm
 
 .PHONY: sim clean
 
 sim:
-	mkdir -p build/mux10_uvm
-	$(VCS) -full64 -sverilog -ntb_opts uvm-1.2 -timescale=1ns/1ps \
-	  -f tb/filelist.f -top tb_top -o $(SIMV)
-	./$(SIMV) +UVM_TESTNAME=mux10_test
+	mkdir -p $(OBJ_DIR)
+	$(VERILATOR) --binary --timing -j 2 -Wno-fatal \
+	  --top-module tb_top --Mdir $(OBJ_DIR) \
+	  +incdir+$(UVM_HOME) +define+UVM_NO_DPI \
+	  rtl/mux10.sv tb/mux_if.sv \
+	  $(UVM_HOME)/uvm_pkg.sv tb/mux10_pkg.sv tb/tb_top.sv \
+	  2>&1 | tee $(SIM_DIR)/compile.log
+	./$(OBJ_DIR)/Vtb_top +UVM_TESTNAME=mux10_test \
+	  2>&1 | tee $(SIM_DIR)/run.log
 
 clean:
-	rm -rf build/mux10_uvm
+	rm -rf $(SIM_DIR)/build $(SIM_DIR)/compile.log $(SIM_DIR)/run.log

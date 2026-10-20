@@ -8,5 +8,5 @@ module mux10 (
     input  logic [9:0] sel,
     output logic [9:0] y
 );
-    assign y = sel ? b : a;
+    assign y = (a & ~sel) | (b & sel);
 endmodule

@@ -12,9 +12,9 @@ sim:
 	mkdir -p $(OBJ_DIR)
 	$(VERILATOR) --binary --timing -j 2 -Wno-fatal \
 	  --top-module tb_top --Mdir $(OBJ_DIR) \
-	  +incdir+$(UVM_HOME) +define+UVM_NO_DPI \
-	  rtl/mux10.sv tb/mux_if.sv \
-	  $(UVM_HOME)/uvm_pkg.sv tb/mux10_pkg.sv tb/tb_top.sv \
+	  +incdir+$(UVM_HOME) +incdir+tb/env +define+UVM_NO_DPI \
+	  rtl/mux10.sv tb/interfaces/mux_if.sv \
+	  $(UVM_HOME)/uvm_pkg.sv tb/env/mux10_env_pkg.sv tb/tests/mux10_test.sv tb/tb_top.sv \
 	  2>&1 | tee $(SIM_DIR)/compile.log
 	./$(OBJ_DIR)/Vtb_top +UVM_TESTNAME=mux10_test \
 	  2>&1 | tee $(SIM_DIR)/run.log

@@ -2,7 +2,8 @@
 
 module tb_top;
     import uvm_pkg::*;
-    import mux10_pkg::*;
+    import mux10_env_pkg::*;
+    import mux10_test_pkg::*;
 
     logic clk = 1'b0;
     always #5 clk = ~clk;

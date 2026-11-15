@@ -3,7 +3,7 @@
 | Gate | Status |
 |---|---|
 | Existing repo baseline inspected and preserved | PASS |
-| G0 Host/WSL2 inspection | WSL2 RUNTIME PASS; Ubuntu installation and Git pending |
+| G0 Host/WSL2 inspection | WSL2 RUNTIME PASS previously; Stage 0F script preflight FAILED; Ubuntu and Git pending |
 | G1 Freeze UART specification | PENDING |
 | G2 Implement and verify RTL | PENDING |
 | G3 Synthesis/SDC/pre-route STA | PENDING |
@@ -29,3 +29,5 @@ No EDA tools were installed, simulations executed, physical layouts produced or 
 **2026-11-15 Stage 0E repair (user-provided):** WSL 3.0.5.0 x64 MSI downloaded to `G:\C-Drive-Backup-PreReset\Installers\WSL\wsl.3.0.5.0.x64.msi`; publisher SHA256 and Microsoft Authenticode signature both PASS; `msiexec` exit 0 (installation complete). Earlier WSL package 3.0.3.0 and missing native executable were observed **before the repair**. **Do not claim WSL is working yet.** Next: rerun read-only `scripts/check-wsl-runtime.ps1` to check `wsl --version`, `--status`, `--list --verbose`, and inspect results. Git installation remains PENDING. No Linux distribution was installed or reset.
 
 **2026-11-15 Stage 0D runtime recheck (user-provided):** Windows WSL features both enabled; reboot pending: none; `wsl --version` successful, WSL 3.0.5.0 / kernel 6.18.58.1-1; `wsl --status` successful, default version 2. `wsl --list --verbose` reports **no distributions installed**, which is expected. WSL runtime is now VERIFIED. Next action: [Stage 0F guarded Ubuntu 24.04 installation to G:](scripts/install-ubuntu-gdrive.ps1), using Microsoft-supported `wsl --install --location` and the official online distro catalog. Install not yet executed; Git remains missing. No tapeout work beyond planning is claimed.
+
+**2026-11-15 Stage 0F (user-provided):** G: free 119.5 GB PASS. Ubuntu installation script failed at its internal `Run-Wsl --version` preflight, reporting only "WSL version command did not succeed; do not install a distro." The script aborted **before** creating the Ubuntu install path or invoking `wsl --install`. This does not prove WSL has regressed; the last standalone Stage 0D WSL runtime test passed. Diagnose command capture and custom-location capability with the [Stage 0F read-only diagnostic](scripts/diagnose-stage0f.ps1) before attempting installation again. No Ubuntu installation, Git install, or EDA install has been verified.

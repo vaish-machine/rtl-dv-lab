@@ -3,7 +3,7 @@
 | Gate | Status |
 |---|---|
 | Existing repo baseline inspected and preserved | PASS |
-| G0 Host/WSL2 inspection | BLOCKED: WSL error and Git missing from PATH |
+| G0 Host/WSL2 inspection | RESOURCE CHECK PASS; WSL features disabled; WSL/Git setup outstanding |
 | G1 Freeze UART specification | PENDING |
 | G2 Implement and verify RTL | PENDING |
 | G3 Synthesis/SDC/pre-route STA | PENDING |
@@ -17,4 +17,5 @@ No EDA tools were installed, simulations executed, physical layouts produced or 
 
 **2026-11-15 actual Windows preflight (user-provided):** Windows 11 Home Single Language; RAM 15.9 GB; free G: 107.8 GB; Intel i7-9750H. Resources PASS. Git not found in PATH. WSL reports `Wsl/CallMsi/Install/REGDB_E_CLASSNOTREG`. Docker not found (optional). The WSL issue blocks the Linux ASIC toolchain; no repair has been attempted.
 
-**Next action:** Run [read-only WSL/Git check](scripts/diagnose-wsl-git.ps1) as administrator to inspect optional features, installed WSL app, registered distros and Git paths. Do not unregister or remove any existing distro before backup.
+**Next action:** Enable the two missing WSL2 optional features with [Stage 0C](scripts/enable-wsl-features.ps1); reboot manually if requested, then inspect WSL. Do not unregister or remove any existing distro before backup.
+**2026-11-15 Stage 0B detailed diagnosis (user-provided):** Windows 10.0.26300; admin yes; both `Microsoft-Windows-Subsystem-Linux` and `VirtualMachinePlatform` disabled; WSL Store package 3.0.3.0; no Linux distros in current user's registry; WslService/LxssManager not found; msiserver stopped (can be normal); Git not found in PATH/common install locations. **Next:** run [controlled Windows optional-feature enablement](scripts/enable-wsl-features.ps1), manually reboot if indicated, then verify WSL. Do not unregister/reset any distro. Git installation follows WSL recovery.

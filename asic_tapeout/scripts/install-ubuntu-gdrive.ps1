@@ -1,11 +1,11 @@
-# ASIC Stage 0F — install Ubuntu 24.04 LTS WSL2 on G: using Microsoft's --location option.
-# Changes: installs one Ubuntu distribution and stores its persistent virtual disk under G:.
-# Does not reset/unregister existing distributions, install Git/EDA/Docker, or modify other projects.
-# Run as the regular Windows account that will use WSL (administrator is not required).
+# ASIC Stage 0F (corrected) — install Ubuntu 24.04 LTS WSL2 directly under G:.
+# Installs exactly one distro; no reset, unregister, delete, Git, Docker or EDA install.
+# Always run under the Windows account that will own/use the Ubuntu distribution.
 $ErrorActionPreference = 'Stop'
 $root = 'G:\C-Drive-Backup-PreReset'
+$destination = Join-Path $root 'DevTools\WSL\Ubuntu-24.04'
 if (-not (Test-Path -LiteralPath $root -PathType Container)) {
-    Write-Host 'FAIL | G: development root missing; nothing changed'
+    Write-Host 'FAIL | G: root not found; no changes made'
     return
 }
 $logDir = Join-Path $root 'Temp'
@@ -17,77 +17,99 @@ function Record([System.Collections.Generic.List[string]]$buffer,[string]$state,
     Write-Host $line
     [void]$buffer.Add($line)
 }
-function Run-Wsl([string[]]$arguments) {
-    $prev = $ErrorActionPreference
+function Invoke-Wsl([string[]]$WslArgs) {
+    $exe = Join-Path $env:WINDIR 'System32\wsl.exe'
+    $oldPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = 'Continue'
-        $output = & "$env:WINDIR\System32\wsl.exe" @arguments 2>&1 | Out-String
-        return @{ Exit = $LASTEXITCODE; Output = $output }
+        $raw = & $exe @WslArgs 2>&1 | Out-String
+        $exitCode = $LASTEXITCODE
+        $clean = [regex]::Replace([string]$raw,'\x00','')
+        return [pscustomobject]@{
+            ExitCode = $exitCode
+            Raw = [string]$raw
+            Text = $clean
+        }
     } finally {
-        $ErrorActionPreference = $prev
+        $ErrorActionPreference = $oldPreference
     }
+}
+function ShortText([string]$value) {
+    $compact = ($value -replace '\s+',' ').Trim()
+    if($compact.Length -gt 220) { return $compact.Substring(0,220) + '...' }
+    return $compact
 }
 Write-Host '===== ASIC STAGE 0F: UBUNTU 24.04 ON G: ====='
 try {
-    $destination = Join-Path $root 'DevTools\WSL\Ubuntu-24.04'
     if (Test-Path -LiteralPath $destination) {
-        throw "Destination already exists; refusing to overwrite: $destination"
+        throw "Target exists; refusing overwrite: $destination"
     }
-    $disk = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='G:'"
-    if ($null -eq $disk -or ([double]$disk.FreeSpace / 1GB) -lt 25) {
-        throw 'G: needs at least 25 GB free for this initial setup'
+    $gDisk = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='G:'"
+    if ($null -eq $gDisk) { throw 'G: disk could not be inspected' }
+    $freeGB = [math]::Round([double]$gDisk.FreeSpace / 1GB,1)
+    if ($freeGB -lt 25) { throw "Insufficient G: space ($freeGB GB); 25 GB minimum" }
+    Record $logLines PASS 'G: free space' "$freeGB GB"
+    $wslExe = Join-Path $env:WINDIR 'System32\wsl.exe'
+    if (-not (Test-Path -LiteralPath $wslExe -PathType Leaf)) { throw "WSL executable missing: $wslExe" }
+    $ver = Invoke-Wsl -WslArgs @('--version')
+    if ($ver.ExitCode -ne 0 -or $ver.Text -notmatch '(?i)WSL\s+version\s*:') {
+        Record $logLines WARN 'WSL version details' ("exit=$($ver.ExitCode); " + (ShortText $ver.Text))
+        throw 'WSL runtime did not report a usable version; install not attempted'
     }
-    $freeGB = [math]::Round([double]$disk.FreeSpace / 1GB,1)
-    Record $logLines PASS 'G: free GB' "$freeGB"
-    $version = Run-Wsl -arguments @('--version')
-    if($version.Exit -ne 0 -or $version.Output -notmatch 'WSL version') {
-        throw 'WSL version command did not succeed; do not install a distro'
+    Record $logLines PASS 'WSL runtime' ("exit=0; " + (ShortText $ver.Text))
+    # Microsoft documents capabilities with: wsl --help (not "wsl --install --help").
+    $help = Invoke-Wsl -WslArgs @('--help')
+    if ($help.Text -notmatch '(?i)--location') {
+        Record $logLines WARN 'WSL help details' ("exit=$($help.ExitCode); " + (ShortText $help.Text))
+        throw 'WSL top-level help does not advertise --location; refusing C: fallback'
     }
-    Record $logLines PASS 'WSL runtime' (($version.Output -replace '\s+',' ').Trim().Substring(0,[math]::Min(95,($version.Output -replace '\s+',' ').Trim().Length)))
-    $help = Run-Wsl -arguments @('--install','--help')
-    if ($help.Output -notmatch '--location') { throw 'This WSL installation does not advertise --location; refusing C: fallback' }
-    Record $logLines PASS 'Custom install location' '--location available'
-    $installed = Run-Wsl -arguments @('--list','--verbose')
-    if ($installed.Exit -eq 0) {
-        Record $logLines WARN 'Existing distributions' (($installed.Output -replace '\s+',' ').Trim())
-        throw 'An existing distro is detected. No new installation attempted'
+    Record $logLines PASS 'Custom G: location' 'wsl --help advertises --location'
+    $listed = Invoke-Wsl -WslArgs @('--list','--verbose')
+    [void]$logLines.Add('Pre-install WSL listing: ' + $listed.Text)
+    if ($listed.ExitCode -eq 0) {
+        throw 'At least one distro may be installed; review existing distros before creating another'
     }
-    if ($installed.Output -notmatch '(?i)no installed distributions') {
-        throw 'Unable to prove no existing distributions; refusing installation'
+    if ($listed.Text -notmatch '(?i)no installed distributions') {
+        throw ("Existing distro state ambiguous: " + (ShortText $listed.Text))
     }
-    Record $logLines PASS 'Existing distributions' 'none, confirmed'
-    $online = Run-Wsl -arguments @('--list','--online')
-    if ($online.Exit -ne 0 -or $online.Output -notmatch 'Ubuntu-24\.04') {
-        throw 'Ubuntu-24.04 not found in WSL online catalog; no installation attempted'
+    Record $logLines PASS 'Existing distros' 'none reported'
+    $catalog = Invoke-Wsl -WslArgs @('--list','--online')
+    [void]$logLines.Add('WSL online distro catalog: ' + $catalog.Text)
+    if ($catalog.ExitCode -ne 0 -or $catalog.Text -notmatch '(?im)Ubuntu-24\.04') {
+        Record $logLines WARN 'Online catalog' ("exit=$($catalog.ExitCode); " + (ShortText $catalog.Text))
+        throw 'Ubuntu-24.04 could not be confirmed in the official WSL catalog'
     }
-    Record $logLines PASS 'Ubuntu availability' 'Ubuntu-24.04 in official WSL catalog'
+    Record $logLines PASS 'Ubuntu-24.04 availability' 'listed online'
     $parent = Split-Path -Parent $destination
     New-Item -ItemType Directory -Path $parent -Force | Out-Null
     Record $logLines INFO 'Install target' $destination
-    Record $logLines INFO 'Installer' 'Downloading and installing Ubuntu 24.04 LTS; --no-launch'
-    $setup = Run-Wsl -arguments @('--install','--distribution','Ubuntu-24.04','--location',$destination,'--web-download','--no-launch')
-    [void]$logLines.Add('WSL installer full output:')
-    [void]$logLines.Add($setup.Output)
-    if ($setup.Exit -ne 0) {
-        throw "WSL installer exit code $($setup.Exit). Inspect detailed log; do not reinstall over existing files"
+    Record $logLines INFO 'Install action' 'WSL Ubuntu 24.04 via --web-download --no-launch --location'
+    $install = Invoke-Wsl -WslArgs @('--install','--distribution','Ubuntu-24.04','--location',$destination,'--web-download','--no-launch')
+    [void]$logLines.Add('WSL install output: ' + $install.Text)
+    if ($install.ExitCode -ne 0) {
+        throw ("WSL installation exited $($install.ExitCode): " + (ShortText $install.Text) + '. Do NOT rerun before reviewing destination and log')
     }
     Record $logLines PASS 'WSL installer' 'Exit 0'
-    $after = Run-Wsl -arguments @('--list','--verbose')
-    [void]$logLines.Add('Post-install distro listing:')
-    [void]$logLines.Add($after.Output)
-    if ($after.Exit -eq 0 -and $after.Output -match 'Ubuntu-24\.04' -and $after.Output -match '\s2(\s|$)') {
-        Record $logLines PASS 'Ubuntu 24.04 registration' 'WSL2 registered'
+    $post = Invoke-Wsl -WslArgs @('--list','--verbose')
+    [void]$logLines.Add('Post-install listing: ' + $post.Text)
+    if ($post.ExitCode -eq 0 -and $post.Text -match 'Ubuntu-24\.04') {
+        Record $logLines PASS 'Ubuntu registration' 'Ubuntu-24.04 present'
+        if ($post.Text -match '(?m)Ubuntu-24\.04[^\r\n]*\s2\s*$') {
+            Record $logLines PASS 'Ubuntu WSL version' '2'
+        } else {
+            Record $logLines WARN 'Ubuntu WSL version' 'Could not confirm WSL2 from listing; inspect log'
+        }
     } else {
-        Record $logLines WARN 'Ubuntu registration' 'Installer completed but WSL2 registration not verified; inspect log'
+        Record $logLines WARN 'Ubuntu registration' 'Install exited 0 but listing is unclear; inspect log'
     }
     $vhd = Join-Path $destination 'ext4.vhdx'
-    Record $logLines $(if(Test-Path -LiteralPath $vhd){'PASS'}else{'INFO'}) 'Virtual disk on G:' $(if(Test-Path -LiteralPath $vhd){$vhd}else{'ext4.vhdx not at expected immediate path; inspect directory if necessary'})
-    Record $logLines INFO 'Next step' 'Initialize Linux user with wsl -d Ubuntu-24.04 after reviewing the result'
+    Record $logLines $(if(Test-Path -LiteralPath $vhd -PathType Leaf){'PASS'}else{'WARN'}) 'G: virtual disk' $(if(Test-Path -LiteralPath $vhd -PathType Leaf){$vhd}else{'VHDX not located at expected path'})
+    Record $logLines INFO 'Next step' 'Review results; then initialize Ubuntu user'
 } catch {
     Record $logLines FAIL 'Installation or preflight' $_.Exception.Message
 } finally {
-    [void]$logLines.Add('No existing WSL distro was unregistered, reset, or deleted by this script.')
-    [void]$logLines.Add('No Git/EDA software was installed by this script.')
+    [void]$logLines.Add('No existing WSL distribution was reset, unregistered, deleted or moved by this script.')
+    [void]$logLines.Add('No Git, Docker, or EDA tools installed.')
     $logLines | Out-File -LiteralPath $logPath -Encoding UTF8
     Write-Host "INFO | Detailed log: $logPath"
     Write-Host '===== END STAGE 0F ====='

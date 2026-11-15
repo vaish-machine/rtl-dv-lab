@@ -3,7 +3,7 @@
 | Gate | Status |
 |---|---|
 | Existing repo baseline inspected and preserved | PASS |
-| G0 Host/WSL2 inspection | PASS — Ubuntu 24.04 registered as WSL2 on G:; Linux user initialization pending; Git pending |
+| G0 Host/WSL2 inspection | PASS — Ubuntu 24.04 on G:; Linux user vaish UID 1000 verified; Git setup pending |
 | G1 Freeze UART specification | PENDING |
 | G2 Implement and verify RTL | PENDING |
 | G3 Synthesis/SDC/pre-route STA | PENDING |
@@ -39,3 +39,5 @@ No EDA tools were installed, simulations executed, physical layouts produced or 
 **2026-11-16 Stage 0G first-launch attempt (user-provided):** preflight failed at `wsl --list --quiet` with `Ubuntu-24.04 is not listed`, before Ubuntu launch or account creation. Stage 0F had already verified `wsl --list --verbose` with Ubuntu-24.04 registered as WSL2 and the G: VHDX. Likely PowerShell 5.1 UTF-16/NUL parsing issue with `--quiet`, but a Windows-account registration difference remains possible. Corrected [Stage 0G initializer](scripts/initialize-ubuntu-gdrive.ps1) now uses `--list --verbose`, strips NULs and prints exit code and compact listing; it refuses to launch if registration cannot be confirmed. No distro changes or Linux account creation were performed by the failed Stage 0G run. **Next:** run corrected script from same Windows account as Stage 0F, review results, avoid reinstalling or resetting Ubuntu.
 
 **2026-11-16 Stage 0G live first-launch output (user-provided):** `wsl --list --verbose` returned exit=0, Ubuntu-24.04 `Stopped`, version 2. The distro's G: virtual disk exists. First-run provisioned a default non-root Unix account `vaish`; password setup reported success, and an interactive `vaish@Vaishakha:...$` Ubuntu shell appeared. **Stage 0G post-exit account/Ubuntu release checks have NOT run yet** because the user is still inside the interactive Linux shell. Next: type `exit` and inspect the PowerShell script's final account/OS PASS/FAIL results; do not count completion prematurely. Git and EDA installations remain pending.
+
+**2026-11-16 Stage 0G completion (user-provided): PASS.** After leaving the interactive Ubuntu shell, Stage 0G verified non-root user `vaish` (UID 1000) and Ubuntu release `24.04`. Detailed host log: `G:\C-Drive-Backup-PreReset\Temp\ASIC-Ubuntu-FirstLaunch-20261116-000853.log`. No Linux Git or ASIC EDA tools installed so far. **Next Stage 0H:** run [setup-git-wsl.sh](scripts/setup-git-wsl.sh) from Ubuntu as user `vaish` (single PowerShell download/launch command), installing `git`/`ca-certificates` via Ubuntu apt and cloning public `vaish-machine/rtl-dv-lab` to `/home/vaish/projects/rtl-dv-lab` on the G:-backed ext4 virtual disk. Clone/install remain unverified until user supplies results.

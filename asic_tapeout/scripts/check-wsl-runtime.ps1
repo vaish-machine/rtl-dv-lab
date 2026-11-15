@@ -42,7 +42,8 @@ if (-not (Test-Path -LiteralPath $wslExe -PathType Leaf)) {
     )) {
         try {
             # External command output may go to stderr even for normal status messages.
-            $output = & $wslExe @($entry.Args) 2>&1 | Out-String
+            $commandArgs = [string[]]$entry.Args
+            $output = & $wslExe @commandArgs 2>&1 | Out-String
             $exit = $LASTEXITCODE
             $detail = ($output -replace '\s+',' ').Trim()
             if ([string]::IsNullOrWhiteSpace($detail)) { $detail = '(no output)' }

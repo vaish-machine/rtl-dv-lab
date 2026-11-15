@@ -1,4 +1,4 @@
-# ASIC Stage 0G — first launch of Ubuntu 24.04 and read-only account verification.
+# ASIC Stage 0G (corrected) — Ubuntu 24.04 first launch and account verification.
 # Creates Linux user/password only through Ubuntu's own interactive first-run prompts.
 # Never prints/stores passwords. Only writes summary diagnostics under G:\...\Temp.
 # Run from the normal Windows account that owns the WSL distro.
@@ -22,11 +22,18 @@ function Report([System.Collections.Generic.List[string]]$buffer,[string]$status
 Write-Host '===== ASIC STAGE 0G: UBUNTU FIRST LAUNCH ====='
 $wsl = Join-Path $env:WINDIR 'System32\wsl.exe'
 try {
-    $available = & $wsl --list --quiet 2>&1 | Out-String
-    if ($LASTEXITCODE -ne 0 -or $available -notmatch 'Ubuntu-24\.04') {
-        throw 'Ubuntu-24.04 is not listed; stopping without touching the distribution'
+    # WSL --list --quiet may emit embedded NULs under Windows PowerShell 5.1.
+    # Use the --verbose listing that was verified in Stage 0F and normalize output.
+    $availableRaw = & $wsl --list --verbose 2>&1 | Out-String
+    $listingExit = $LASTEXITCODE
+    $available = ([string]$availableRaw -replace '\x00','')
+    $compactListing = ($available -replace '\s+',' ').Trim()
+    if ($compactListing.Length -gt 250) { $compactListing = $compactListing.Substring(0,250) + '...' }
+    Report $lines INFO 'WSL distribution listing' "exit=$listingExit; $compactListing"
+    if ($listingExit -ne 0 -or $available -notmatch '(?i)\bUbuntu-24\.04\b') {
+        throw 'Ubuntu-24.04 is not registered for this Windows account; stopped before launching Linux. Check Stage 0G diagnostic listing.'
     }
-    Report $lines PASS 'Ubuntu registration' 'Ubuntu-24.04 listed'
+    Report $lines PASS 'Ubuntu registration' 'Ubuntu-24.04 listed for current Windows account'
     Report $lines PASS 'Persistent disk' $vhd
     Report $lines INFO 'First launch' 'If prompted, choose a new Linux username/password; passwords will not appear as you type'
     Report $lines INFO 'Leave Ubuntu shell' 'After successful creation type exit, then PowerShell verifies the account'

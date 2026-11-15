@@ -66,7 +66,7 @@ try {
     if ($asset.digest -notmatch '^sha256:([a-fA-F0-9]{64})$') {
         throw 'Missing official GitHub SHA256 asset digest'
     }
-    $expectedHash = $Matches[1].ToUpperInvariant()
+    $expectedHash = $asset.digest.ToString().Substring(7).ToUpperInvariant()
     $msi = Join-Path $installerDir $asset.name
     if(Test-Path -LiteralPath $msi -PathType Leaf) {
         $currentHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $msi).Hash.ToUpperInvariant()

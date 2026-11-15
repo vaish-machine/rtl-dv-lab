@@ -19,3 +19,8 @@ References:
 - https://github.com/TinyTapeout/ttsky-verilog-template
 
 AI may draft code, scripts, tests and design reviews. The engineer owns independent verification, signoff checks, exceptions, and factual resume claims.
+## Stage 0I — core RTL verification and synthesis baseline
+
+After [Stage 0H Git setup](scripts/setup-git-wsl.sh) has passed, install Ubuntu 24.04 packaged `yosys`, `verilator`, `iverilog`, `build-essential`, `python3`, `python3-venv`, `python3-pip`, `tcl` and `z3` using the reviewed [Stage 0I install + smoke-test script](scripts/install-rtl-tools-wsl.sh). Ubuntu 24.04 package repositories provide these packages; the distro versions may be older than current upstream releases. Check and record actual versions rather than assuming current upstream. The script checks package availability, installs through apt, tests a standalone SystemVerilog counter with a self-checking Icarus testbench, lints the counter with Verilator, and synthesizes it in Yosys. Logs and small test files are kept under `G:\C-Drive-Backup-PreReset\Temp`; the original Git working tree is not modified.
+
+The first counter smoke test is a **toolchain validation**, not evidence of UART verification or silicon implementation. The SKY130 PDK, OpenROAD/LibreLane physical flow, signoff tools, timing constraints and shuttle integration remain later distinct milestones.

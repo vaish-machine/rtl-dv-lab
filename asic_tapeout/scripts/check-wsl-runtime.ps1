@@ -32,9 +32,10 @@ Report $lines $(if($pending){'WARN'}else{'INFO'}) 'Pending Windows reboot' $(if(
 $wslExe = Join-Path $env:SystemRoot 'System32\wsl.exe'
 if (-not (Test-Path -LiteralPath $wslExe -PathType Leaf)) {
     Report $lines FAIL 'WSL executable' 'not present in Windows System32'
-} elseif ($pending) {
-    Report $lines WARN 'WSL commands' 'skipped because reboot is pending'
 } else {
+    if ($pending) {
+        Report $lines INFO 'WSL commands' 'read-only checks will run; complete any required reboot first'
+    }
     foreach ($entry in @(
         @{Label='WSL version'; Args=@('--version')},
         @{Label='WSL status'; Args=@('--status')},

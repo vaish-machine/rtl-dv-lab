@@ -3,7 +3,7 @@
 | Gate | Status |
 |---|---|
 | Existing repo baseline inspected and preserved | PASS |
-| G0 Host/WSL2 inspection | WSL2 RUNTIME PASS previously; Stage 0F script preflight FAILED; Ubuntu and Git pending |
+| G0 Host/WSL2 inspection | PASS — Ubuntu 24.04 registered as WSL2 on G:; Linux user initialization pending; Git pending |
 | G1 Freeze UART specification | PENDING |
 | G2 Implement and verify RTL | PENDING |
 | G3 Synthesis/SDC/pre-route STA | PENDING |
@@ -33,3 +33,5 @@ No EDA tools were installed, simulations executed, physical layouts produced or 
 **2026-11-15 Stage 0F (user-provided):** G: free 119.5 GB PASS. Ubuntu installation script failed at its internal `Run-Wsl --version` preflight, reporting only "WSL version command did not succeed; do not install a distro." The script aborted **before** creating the Ubuntu install path or invoking `wsl --install`. This does not prove WSL has regressed; the last standalone Stage 0D WSL runtime test passed. Diagnose command capture and custom-location capability with the [Stage 0F read-only diagnostic](scripts/diagnose-stage0f.ps1) before attempting installation again. No Ubuntu installation, Git install, or EDA install has been verified.
 
 **2026-11-15 Stage 0F diagnostic (user-provided):** Windows PowerShell 5.1, x64, `wsl.exe` exists, `wsl --version` returns exit=0 and WSL 3.0.5.0, destination G: Ubuntu directory absent, no registered distributions (expected `--list --verbose` exit -1), `wsl --install --help` returned exit=-1 without `--location`. This is **not** a valid capability check: Microsoft documents `wsl --help` as the canonical command. Corrected Stage 0F script now uses named string-array argument capture with exact exit/output diagnostics and the documented top-level help. Next: rerun **corrected** [Ubuntu G: installer](scripts/install-ubuntu-gdrive.ps1) and inspect compact results. Ubuntu installation has not yet been demonstrated.
+
+**2026-11-15 Stage 0F rerun (user-provided): PASS.** Free G: space 119.5 GB; WSL 3.0.5.0 OK; custom `--location` available; no prior distros; Ubuntu-24.04 available in official catalog; WSL installer exit=0; distro registration PASS; WSL2 PASS; persisted `ext4.vhdx` located at `G:\C-Drive-Backup-PreReset\DevTools\WSL\Ubuntu-24.04\ext4.vhdx`. **Next:** first interactive Ubuntu launch and non-root account check with [Stage 0G](scripts/initialize-ubuntu-gdrive.ps1), from the same normal Windows user account. Then install Git inside WSL (Linux filesystem is on G:), check source control and choose RTL/EDA install path. No Ubuntu user/package installation or simulation evidence yet.

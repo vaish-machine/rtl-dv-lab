@@ -3,7 +3,7 @@
 | Gate | Status |
 |---|---|
 | Existing repo baseline inspected and preserved | PASS |
-| G0 Host/WSL2 inspection | RESOURCE CHECK PASS; WSL 3.0.5 MSI repair succeeded; WSL runtime pending recheck; Git missing |
+| G0 Host/WSL2 inspection | WSL2 RUNTIME PASS; Ubuntu installation and Git pending |
 | G1 Freeze UART specification | PENDING |
 | G2 Implement and verify RTL | PENDING |
 | G3 Synthesis/SDC/pre-route STA | PENDING |
@@ -27,3 +27,5 @@ No EDA tools were installed, simulations executed, physical layouts produced or 
 **2026-11-15 Stage 0D after restart (user-provided):** both WSL Windows features Enabled (PASS); reboot-pending markers absent; all `wsl --version`, `wsl --status`, `wsl --list --verbose` still report `Wsl/CallMsi/Install/REGDB_E_CLASSNOTREG`. WSL application setup remains BROKEN; do not install an Ubuntu distro yet. Next: [Stage 0E guarded Microsoft-signed stable MSI WSL repair](scripts/repair-wsl-official-msi.ps1) (download to G:\C-Drive-Backup-PreReset\Installers\WSL; verified SHA256 and Authenticode; MSI verbose log in G: Temp). No uninstall/reset/unregister actions. Git remains missing. **Stage 0E has been documented but NOT executed on the user's PC.**
 
 **2026-11-15 Stage 0E repair (user-provided):** WSL 3.0.5.0 x64 MSI downloaded to `G:\C-Drive-Backup-PreReset\Installers\WSL\wsl.3.0.5.0.x64.msi`; publisher SHA256 and Microsoft Authenticode signature both PASS; `msiexec` exit 0 (installation complete). Earlier WSL package 3.0.3.0 and missing native executable were observed **before the repair**. **Do not claim WSL is working yet.** Next: rerun read-only `scripts/check-wsl-runtime.ps1` to check `wsl --version`, `--status`, `--list --verbose`, and inspect results. Git installation remains PENDING. No Linux distribution was installed or reset.
+
+**2026-11-15 Stage 0D runtime recheck (user-provided):** Windows WSL features both enabled; reboot pending: none; `wsl --version` successful, WSL 3.0.5.0 / kernel 6.18.58.1-1; `wsl --status` successful, default version 2. `wsl --list --verbose` reports **no distributions installed**, which is expected. WSL runtime is now VERIFIED. Next action: [Stage 0F guarded Ubuntu 24.04 installation to G:](scripts/install-ubuntu-gdrive.ps1), using Microsoft-supported `wsl --install --location` and the official online distro catalog. Install not yet executed; Git remains missing. No tapeout work beyond planning is claimed.

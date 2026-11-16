@@ -11,7 +11,9 @@ module uart_tx #(
     output reg        tx_o
 );
     localparam integer CW = $clog2(CLKS_PER_BIT);
-    localparam [CW-1:0] LAST_TICK = CLKS_PER_BIT - 1;
+    // Use a width-matched constant to avoid implicit 32-bit truncation.
+    localparam integer LAST_TICK_INT = CLKS_PER_BIT - 1;
+    localparam [CW-1:0] LAST_TICK = LAST_TICK_INT[CW-1:0];
     localparam [1:0] S_IDLE = 2'd0, S_START = 2'd1,
                      S_DATA = 2'd2, S_STOP = 2'd3;
 

@@ -121,7 +121,7 @@ base=Path(sys.argv[1])
 test=base/"test"
 tb=test/"tb.v"
 text=tb.read_text(encoding="utf-8")
-assert text.count("tt_um_example")==1, "Pinned official tb.v changed"
+assert text.count("tt_um_example")==2, "Pinned official tb.v changed: expected one comment and one instantiation"
 tb.write_text(text.replace("tt_um_example","tt_um_vaish_uart"),encoding="utf-8")
 mk=test/"Makefile"
 make=mk.read_text(encoding="utf-8")

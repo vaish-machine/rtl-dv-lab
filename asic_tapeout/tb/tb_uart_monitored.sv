@@ -24,7 +24,9 @@ module tb_uart_monitored;
     );
 
     reg coverage_reported = 1'b0;
-    always @(negedge traffic.clk) begin
+    // Check after NBA and scoreboard (#1), before traffic may finish on a negedge.
+    always @(posedge traffic.clk) begin
+        #3;
         if (!coverage_reported &&
             traffic.loop_count == 60 &&
             traffic.direct_count == 73 &&

@@ -51,4 +51,10 @@ Official links:
 ## Executed setup milestones
 
 - Stage 2A (user-provided 2026-11-16): **PASS**, release file and SHA256 verified, G: free 94.9 GB, no execution.
-- Stage 2B: **PREPARED, NOT RUN**. See [guarded AppImage copy and official smoke script](scripts/install-smoke-librelane-wsl.sh). Runs AppImage's `librelane --smoke-test` in native G:-backed Ubuntu ext4. Some Ubuntu 24.04 configurations block unprivileged namespaces via AppArmor; such errors are reported without silently adjusting security policy. Exact host prerequisites remain to be verified.
+- Stage 2B (user-provided 2026-11-16): **PASS**. Official LibreLane 3.0.17 AppImage copied into native G:-backed Ubuntu ext4 with matching SHA256; Ubuntu uidmap installed; version and bundled smoke test passed, no AppArmor/sysctl modifications. This is environment validation only.
+
+### Stage 2C (prepared, unexecuted)
+
+- [Exploratory UART macro configuration](physical/uart_sky130_explore/README.md) and [guarded Classic runner](scripts/run-uart-sky130-explore-wsl.sh) staged in GitHub. Digital core uart_core default CPB=16, 100 ns provisional clock period (10 MHz nominal; 625000 UART baud), sky130A/sky130_fd_sc_hd, fixed *exploratory* 250 um x 250 um die area.
+- Source RTL, config and pins staged into unique G:-backed Ubuntu ext4 work directory without altering original repo; full LibreLane reports/build outputs there, short summary in G: Temp. Runner invokes LibreLane Classic with two jobs and requires nonzero final GDS only if full command exits successfully.
+- Next review: actual PDK revision, mapped cell statistics, STA setup/hold, DRC/LVS, final GDS/DEF/pinout and rule waivers, power/timing at multiple corners and shuttle-specific package. A successful experiment is not production signoff or tapeout.

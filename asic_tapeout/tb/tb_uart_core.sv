@@ -205,7 +205,9 @@ module tb_uart_core;
         @(negedge clk); rst_n = 1'b0;
         @(posedge clk); #2;
         check(tx_o === 1'b1 && tx_ready === 1'b1, "Reset did not abort TX");
-        check(rx_valid === 1'b0 && rx_framing_error === 1'b0, "Reset did not clear RX pulse");
+        check(loop_valid === 1'b0 && loop_framing_error === 1'b0 &&
+              direct_valid === 1'b0 && direct_framing_error === 1'b0,
+              "Reset did not clear RX pulses");
         repeat (3) @(posedge clk);
         @(negedge clk); rst_n = 1'b1;
         repeat (CPB * 2) @(posedge clk);

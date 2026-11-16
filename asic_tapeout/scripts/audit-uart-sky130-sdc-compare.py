@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stage 2G: independent read-only comparison of the two G:-backed UART GDS runs.
+r"""Stage 2G: independent read-only comparison of the two G:-backed UART GDS runs.
 
 Verifies both exact SHA256 GDS files, the constrained run's resolved timing
 config and SDC file, and compares final selected metrics (not metric ranges).

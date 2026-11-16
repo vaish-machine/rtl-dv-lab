@@ -25,7 +25,9 @@ report() {
 }
 show_errors() {
     echo "===== COMPACT ERROR DETAILS (from G: log) ====="
-    grep -Ei 'error:|syntax error|unable to bind|unknown module|no such file|warning:|sorry:|failed' "$LOG" | tail -n 14 || true
+    # Capture Verilator diagnostics such as %Warning-WIDTH: and
+    # %Error: as well as traditional compiler 'error:' messages.
+    grep -Ei '^%Warning|^%Error|error:|syntax error|unable to bind|unknown module|no such file|warning:|sorry:|failed' "$LOG" | tail -n 16 || true
     echo "===== END ERROR DETAILS ====="
 }
 [[ "$(id -un)" == "vaish" && "$(id -u)" != "0" ]] || fail "Run as normal Ubuntu user vaish"

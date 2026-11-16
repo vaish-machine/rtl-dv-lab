@@ -109,10 +109,12 @@ cp "$SRC/rtl/uart_tx.sv" "$SRC/rtl/uart_rx.sv" \
    "$SRC/rtl/uart_core.sv" "$TT/src/tt_um_vaish_uart.v" "$WORK/template/src/"
 cp "$TT/info.stage3b.yaml" "$WORK/template/info.yaml"
 cp "$TT/test/test.py" "$WORK/template/test/test.py"
+# The earlier heredoc had a dangling || failure handler placed ahead of
+# the Python body; Bash fed the failure-handler line to Python instead of
+# executing the actual patch. The corrected if/then surrounds the full body.
 # Change only the unique official placeholder name and source list in the
 # LOCAL TEMPORARY TEMPLATE COPY. Preserve the official Makefile structure.
-python3 - "$WORK/template" <<'PY' >"$WORK/template-check.log" 2>&1 ||
-    fail "Official template overlay" "Metadata, tb.v or Makefile patch/validation failed"
+if ! python3 - "$WORK/template" >"$WORK/template-check.log" 2>&1 <<'PY'
 from pathlib import Path
 import re
 import sys
@@ -146,7 +148,19 @@ assert "tt_um_vaish_uart user_project" in tb
 assert "tt_um_example" not in tb
 print("PASS | Template overlay consistency | official TB + source list + YAML v6")
 PY
-say PASS "Official template overlay" "UART RTL, metadata v6, test/Makefile and official TB integrated"
+then
+    fail "Official template overlay" "Metadata, tb.v or Makefile patch/validation failed"
+fi
+if ! grep -Fq "PASS | Template overlay consistency" "$WORK/template-check.log"; then
+    fail "Official template overlay" "Python patch did not confirm completing"
+fi
+if grep -Eq 'tt_um_example[[:space:]]+user_project' "$WORK/template/test/tb.v"; then
+    fail "Official testbench top" "Old official placeholder remains after overlay"
+fi
+if ! grep -Eq 'tt_um_vaish_uart[[:space:]]+user_project' "$WORK/template/test/tb.v"; then
+    fail "Official testbench top" "Expected candidate top missing after overlay"
+fi
+say PASS "Official template overlay" "Python executed; official tb.v top, metadata, Makefile and sources verified"
 say REVIEW "Tile shape" "1x1 is UNVERIFIED PLACEHOLDER, not a proved fit or reserved area"
 say INFO "Clock" "10 MHz is provisional educational metadata, not shuttle contract"
 # Check default SKY workflows have not been edited.

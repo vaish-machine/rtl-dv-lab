@@ -50,7 +50,7 @@ module uart_rx #(
                 S_START: begin
                     if (ticks == 0) begin
                         if (!rx_sync) begin
-                            ticks       <= CLKS_PER_BIT - 1;
+                            ticks       <= LAST_TICK;
                             bit_index   <= 3'd0;
                             sampled_data <= 8'd0;
                             state       <= S_DATA;

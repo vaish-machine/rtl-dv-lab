@@ -1,3 +1,5 @@
+// Pin checkers use explicit 1 ns units; #1 is a post-NBA sample delay.
+`timescale 1ns/1ps
 // Portable immediate-assertion-style UART black-box checkers for Icarus.
 // These are simulation testbench modules, not synthesizable RTL, not formal SVA.
 // All observations are at top-level pins after a fixed post-clock NBA delay.

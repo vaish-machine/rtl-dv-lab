@@ -19,8 +19,8 @@ Accept G2 only with clean mandatory tests, achieved mandatory bins, no known des
 - [ ] TX exact start/data/stop timing and bit order; bytes 00/FF/55/AA/01/80, plus busy-request rejection and post-reset recovery.
 - [ ] TX-to-RX internal loopback accepted data and strobes.
 - [ ] Independent RX serial stimulus: valid 00/FF/55/AA/80/96, short start glitch rejection, invalid stop pulse and data preservation, recovery.
-- [ ] Verilator -Wall lint of UART core and its TX/RX components.
-- [ ] Yosys generic synthesis/check of UART top (not SKY130 mapped).
+- [x] Verilator -Wall lint of UART core and its TX/RX components (user-provided Stage 1A PASS).
+- [x] Yosys generic synthesis/check of UART top (user-provided Stage 1A PASS; not SKY130 mapped).
 - [ ] All logs include tool versions, parameters, commit hash and explicit PASS/FAIL markers.
 
 Sources: rtl/uart_tx.sv, rtl/uart_rx.sv, rtl/uart_core.sv, tb/tb_uart_core.sv. Run through scripts/run-uart-baseline-wsl.sh; store generated output under G: Temp, not source repo. Current tests are **candidates, not results**.
@@ -35,4 +35,15 @@ Sources: rtl/uart_tx.sv, rtl/uart_rx.sv, rtl/uart_core.sv, tb/tb_uart_core.sv. R
 - [ ] CDC/metastability treatment, reset synchrony, synchronizer constraints and integration review.
 - [ ] Reviewed waivers, formal/equivalence where feasible, audited failing tests and final signoff evidence.
 
-**Two directed UART Icarus regressions have passed (CPB=16 and CPB=8).** Verilator lint still requires rerun after correcting three width warnings; UART generic Yosys synthesis has not run. The earlier Stage 0I counter smoke was separate.
+**Stage 1A complete:** Icarus directed regressions CPB=16 and 8, Verilator -Wall lint and Yosys generic synthesis have PASS results from the user's environment. Further verification below remains open. The earlier Stage 0I counter smoke was separate.
+
+## Stage 1B — extended deterministic stress (prepared, not yet executed)
+
+New independent interface-level testbench: `tb/tb_uart_stress.sv`; controlled runner: `scripts/run-uart-stress-wsl.sh`. Planned runs span `CLKS_PER_BIT` 8, 9, 16 and 32 with reproducible decimal seeds 20261116 and 20261117 (8 total configurations). The stress test exercises pseudo-random TX bytes, illegitimate TX_VALID requests while busy, 50 consecutive external RX bytes without extra idle clocks, malformed stops/data preservation, short-start glitch, long break recovery, reset during RX, and parallel independent TX and RX transactions. The scoreboard sees **only top-level interfaces**, not DUT internal FSMs or counters. Generated files and logs go under G: Temp, source clone is fast-forwarded only if clean and on expected main.
+
+- [ ] Stage 1B: 8/8 simulation configurations PASS; record actual outputs and seeds.
+- [ ] Review unexpected behavior and testbench timing/race limitations, even if PASS.
+- [ ] Additional independent asynchronous phase/baud-offset stress and coverage still required.
+- [ ] Parameter corner and bounded formal checks before G2 closure.
+
+No Stage 1B pass is claimed until independently run on the user's Ubuntu machine. Generic synthesis/lint pass does not mean PDK-mapped signoff.

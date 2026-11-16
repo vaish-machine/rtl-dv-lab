@@ -23,6 +23,11 @@ report() {
     printf '%s | %s | %s\n' "$1" "$2" "$3"
     printf '%s | %s | %s\n' "$1" "$2" "$3" >> "$LOG"
 }
+show_errors() {
+    echo "===== COMPACT ERROR DETAILS (from G: log) ====="
+    grep -Ei 'error:|syntax error|unable to bind|unknown module|no such file|warning:|sorry:|failed' "$LOG" | tail -n 14 || true
+    echo "===== END ERROR DETAILS ====="
+}
 [[ "$(id -un)" == "vaish" && "$(id -u)" != "0" ]] || fail "Run as normal Ubuntu user vaish"
 [[ -d "$REPO/.git" ]] || fail "Cloned rtl-dv-lab not found"
 for tool in git iverilog vvp verilator yosys; do
@@ -64,6 +69,7 @@ for cpb in 16 8; do
         -o "$WORK/uart_$cpb.vvp" \
         "$DESIGN/rtl/uart_tx.sv" "$DESIGN/rtl/uart_rx.sv" \
         "$DESIGN/rtl/uart_core.sv" "$DESIGN/tb/tb_uart_core.sv" >> "$LOG" 2>&1; then
+        show_errors
         fail "Icarus compile failed for CPB=$cpb"
     fi
     if ! vvp "$WORK/uart_$cpb.vvp" > "$WORK/uart_$cpb.log" 2>&1; then
@@ -80,6 +86,7 @@ done
 if ! verilator --lint-only --sv -Wall --top-module uart_core \
     "$DESIGN/rtl/uart_tx.sv" "$DESIGN/rtl/uart_rx.sv" \
     "$DESIGN/rtl/uart_core.sv" >> "$LOG" 2>&1; then
+    show_errors
     fail "Verilator -Wall lint failed; inspect G: log"
 fi
 report PASS "Verilator lint" "UART core and submodules, -Wall"
@@ -87,6 +94,7 @@ report PASS "Verilator lint" "UART core and submodules, -Wall"
 if ! yosys -Q -T -p \
     "read_verilog -sv $DESIGN/rtl/uart_tx.sv $DESIGN/rtl/uart_rx.sv $DESIGN/rtl/uart_core.sv; hierarchy -check -top uart_core; synth -top uart_core; check -assert; stat" \
     >> "$LOG" 2>&1; then
+    show_errors
     fail "Yosys RTL synthesis/check failed; inspect G: log"
 fi
 report PASS "Yosys generic synthesis" "UART core synthesized; no SKY130 mapping performed"

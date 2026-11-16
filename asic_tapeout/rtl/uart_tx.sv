@@ -11,6 +11,7 @@ module uart_tx #(
     output reg        tx_o
 );
     localparam integer CW = $clog2(CLKS_PER_BIT);
+    localparam [CW-1:0] LAST_TICK = CLKS_PER_BIT - 1;
     localparam [1:0] S_IDLE = 2'd0, S_START = 2'd1,
                      S_DATA = 2'd2, S_STOP = 2'd3;
 
@@ -41,7 +42,7 @@ module uart_tx #(
                     end
                 end
                 S_START: begin
-                    if (ticks == CLKS_PER_BIT - 1) begin
+                    if (ticks == LAST_TICK) begin
                         ticks      <= {CW{1'b0}};
                         tx_o       <= shift_data[0];
                         shift_data <= {1'b0, shift_data[7:1]};
@@ -51,7 +52,7 @@ module uart_tx #(
                     end
                 end
                 S_DATA: begin
-                    if (ticks == CLKS_PER_BIT - 1) begin
+                    if (ticks == LAST_TICK) begin
                         ticks <= {CW{1'b0}};
                         if (bit_index == 3'd7) begin
                             tx_o  <= 1'b1;
@@ -66,7 +67,7 @@ module uart_tx #(
                     end
                 end
                 S_STOP: begin
-                    if (ticks == CLKS_PER_BIT - 1) begin
+                    if (ticks == LAST_TICK) begin
                         ticks <= {CW{1'b0}};
                         state <= S_IDLE;
                     end else begin

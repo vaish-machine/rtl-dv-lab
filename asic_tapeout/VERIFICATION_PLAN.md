@@ -14,8 +14,8 @@ Tests must derive expected results independently of DUT internals, fail on every
 Accept G2 only with clean mandatory tests, achieved mandatory bins, no known design mismatches, reviewed warnings and archived pass/fail evidence. No tests have been executed as part of this planning commit.
 ## Initial directed RTL baseline (Stage 1A — prepared, unexecuted)
 
-- [ ] Icarus SystemVerilog self-checking baseline at 16 clocks/bit.
-- [ ] Icarus same testbench at 8 clocks/bit.
+- [x] Icarus SystemVerilog self-checking baseline at 16 clocks/bit (user-provided Stage 1A PASS).
+- [x] Icarus same testbench at 8 clocks/bit (user-provided Stage 1A PASS).
 - [ ] TX exact start/data/stop timing and bit order; bytes 00/FF/55/AA/01/80, plus busy-request rejection and post-reset recovery.
 - [ ] TX-to-RX internal loopback accepted data and strobes.
 - [ ] Independent RX serial stimulus: valid 00/FF/55/AA/80/96, short start glitch rejection, invalid stop pulse and data preservation, recovery.
@@ -35,4 +35,4 @@ Sources: rtl/uart_tx.sv, rtl/uart_rx.sv, rtl/uart_core.sv, tb/tb_uart_core.sv. R
 - [ ] CDC/metastability treatment, reset synchrony, synchronizer constraints and integration review.
 - [ ] Reviewed waivers, formal/equivalence where feasible, audited failing tests and final signoff evidence.
 
-**No UART regression test has been reported passing yet.** The earlier Stage 0I counter simulation/lint/synthesis was a separate toolchain smoke test.
+**Two directed UART Icarus regressions have passed (CPB=16 and CPB=8).** Verilator lint still requires rerun after correcting three width warnings; UART generic Yosys synthesis has not run. The earlier Stage 0I counter smoke was separate.

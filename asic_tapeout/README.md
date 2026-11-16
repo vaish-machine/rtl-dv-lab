@@ -1,6 +1,6 @@
 # Solo ASIC Tapeout — UART 8N1
 
-**Status: UART STAGE 1A PASS; COMPREHENSIVE VERIFICATION OPEN.** Ubuntu 24.04 WSL2 on G: is configured; UART Icarus directed simulation PASS at CPB=8 and CPB=16; Verilator -Wall lint PASS; generic Yosys synthesis PASS (all user-provided). Stage 1B extended deterministic UART stress testbench and runner are committed but NOT YET RUN. Specification/shuttle freeze, SKY130 mapping and physical signoff remain pending. Preserve ../mux10_uvm_starter unchanged.
+**Status: UART STAGES 1A AND 1B PASS; G2 VERIFICATION OPEN.** Ubuntu 24.04 WSL2 on G: is configured; UART Icarus directed simulation PASS (CPB 8/16), Verilator -Wall lint PASS, generic Yosys synthesis PASS, and 8/8 deterministic UART stress simulations PASS at CPB 8/9/16/32 × 2 seeds (user-provided results). Stage 1C pin assertions and RX phase regression are committed but NOT RUN. Spec/shuttle freeze, SKY130 mapping and physical signoff remain pending. Preserve ../mux10_uvm_starter unchanged.
 
 Goal: independently execute specification, RTL, independent verification, synthesis, SDC/STA, floorplanning, placement, CTS, routing, physical verification and a fabrication-shuttle submission, with AI-agent assistance.
 
@@ -26,4 +26,4 @@ External references:
 - https://www.tinytapeout.com/guides/advanced-workshop/submit-your-design/
 
 A separate GitHub repository based on the selected shuttle's official template **may be required for the actual submission**. This repository remains the canonical development source; link an immutable tagged source revision into the submission.
-Initial directed regression: [Stage 1A script](scripts/run-uart-baseline-wsl.sh) (**PASS** on user workstation). Extended verification: [Stage 1B runner](scripts/run-uart-stress-wsl.sh) and [independent stress bench](tb/tb_uart_stress.sv) (**pending first execution**). See [STATUS](STATUS.md) for precise gates and evidence, and [VERIFICATION_PLAN](VERIFICATION_PLAN.md) for remaining work.
+Initial directed regression: [Stage 1A script](scripts/run-uart-baseline-wsl.sh) (**PASS** on user workstation). Extended verification: [Stage 1B runner](scripts/run-uart-stress-wsl.sh) and [independent stress bench](tb/tb_uart_stress.sv) (**8/8 PASS on user workstation**). Stage 1C [assertion + async phase regression runner](scripts/run-uart-assertions-phase-wsl.sh) (**not yet run**). See [STATUS](STATUS.md) for precise gates and evidence, and [VERIFICATION_PLAN](VERIFICATION_PLAN.md) for remaining work.

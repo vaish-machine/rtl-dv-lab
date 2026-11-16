@@ -83,8 +83,21 @@ verify_sha "$ORIG2F" "$HASH2F" "Original Stage 2F GDS"
 verify_sha "$SDC" "$SDCSHA" "Original Stage 2F SDC"
 verify_sha "$APP" "$APP_SHA" "LibreLane 3.0.17 AppImage"
 say PASS "Preserved inputs/tool" "Stage2C/2F GDS, SDC, LibreLane AppImage SHA256 verified"
-[[ -d "$PDK_ROOT/sky130A" ]] ||
-    fail "PDK" "SKY130A PDK missing under G:-backed WSL tools"
+# Earlier successful Stage 2F did NOT require an unversioned
+# "$PDK_ROOT/sky130A" tree: LibreLane/ciel may use a versioned cache and
+# resolve/provision the PDK when the physical flow starts. Verify the
+# chosen G:-backed root is writable; delegate PDK resolution to LibreLane.
+# Do not reinstall, copy or alter existing PDK installations here.
+mkdir -p "$PDK_ROOT" ||
+    fail "PDK root" "Cannot create the existing G:-backed tools PDK root"
+[[ -d "$PDK_ROOT" && -w "$PDK_ROOT" ]] ||
+    fail "PDK root" "PDK root is not a writable directory: $PDK_ROOT"
+say PASS "G:-backed PDK root" "$PDK_ROOT exists and is writable"
+if [[ -d "$PDK_ROOT/sky130A" ]]; then
+    say PASS "Unversioned SKY130A directory" "Already exists under PDK_ROOT"
+else
+    say REVIEW "SKY130A PDK resolution" "No unversioned sky130A directory; let LibreLane resolve/provision as Stage 2F did; on error retain logs"
+fi
 [[ -d "$SOURCE/.git" && -f "$SOURCE/test/results.xml" ]] ||
     fail "Stage 3C" "Known passing isolated official template not found"
 [[ "$(git -C "$SOURCE" rev-parse HEAD)" == "$TEMPLATE_REV" ]] ||

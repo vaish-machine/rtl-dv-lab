@@ -12,8 +12,12 @@ module uart_rx #(
     output reg        rx_framing_error
 );
     localparam integer CW = $clog2(CLKS_PER_BIT);
-    localparam [CW-1:0] LAST_TICK = CLKS_PER_BIT - 1;
-    localparam [CW-1:0] HALF_TICK = (CLKS_PER_BIT / 2) - 1;
+    // Explicit bit-selects preserve the intended timer values without
+    // narrowing a 32-bit expression implicitly (Verilator WIDTHTRUNC).
+    localparam integer LAST_TICK_INT = CLKS_PER_BIT - 1;
+    localparam integer HALF_TICK_INT = (CLKS_PER_BIT / 2) - 1;
+    localparam [CW-1:0] LAST_TICK = LAST_TICK_INT[CW-1:0];
+    localparam [CW-1:0] HALF_TICK = HALF_TICK_INT[CW-1:0];
     localparam [2:0] S_IDLE = 3'd0, S_START = 3'd1,
                      S_DATA = 3'd2, S_STOP = 3'd3,
                      S_WAIT_HIGH = 3'd4;

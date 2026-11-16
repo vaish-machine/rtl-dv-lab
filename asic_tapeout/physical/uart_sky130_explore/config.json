@@ -1,0 +1,18 @@
+{
+  "DESIGN_NAME": "uart_core",
+  "VERILOG_FILES": [
+    "dir::src/uart_tx.sv",
+    "dir::src/uart_rx.sv",
+    "dir::src/uart_core.sv"
+  ],
+  "CLOCK_PORT": "clk",
+  "CLOCK_PERIOD": 100,
+  "FP_SIZING": "absolute",
+  "DIE_AREA": [
+    0,
+    0,
+    250,
+    250
+  ],
+  "IO_PIN_ORDER_CFG": "dir::pin_order.cfg"
+}

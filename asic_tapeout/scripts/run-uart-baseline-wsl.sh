@@ -56,6 +56,7 @@ for file in rtl/uart_tx.sv rtl/uart_rx.sv rtl/uart_core.sv tb/tb_uart_core.sv; d
 done
 WORK="$(mktemp -d "$LOGROOT/ASIC-Stage1A-UART.XXXXXXXX")"
 report INFO "Test workspace" "$WORK"
+cd "$WORK"  # Keep any tool side-effects off C: and outside the source repo.
 # -P permits actual compilation/testing with two different bit periods.
 for cpb in 16 8; do
     report INFO "Icarus verification" "Starting CPB=$cpb"

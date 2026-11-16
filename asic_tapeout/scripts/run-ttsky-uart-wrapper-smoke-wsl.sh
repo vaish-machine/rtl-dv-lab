@@ -78,8 +78,7 @@ for file in "$SRC/rtl/uart_tx.sv" "$SRC/rtl/uart_rx.sv" \
     [[ -f "$file" && ! -L "$file" ]] ||
         fail "Sources" "Missing $file"
 done
-python3 - "$TT/src/tt_um_vaish_uart.v" >>"$LOG" 2>&1 <<'PY' ||
-    fail "Candidate pin map" "Wrapper header/mapping does not match expected"
+if ! python3 - "$TT/src/tt_um_vaish_uart.v" >>"$LOG" 2>&1 <<'PY'
 from pathlib import Path
 import sys
 text=Path(sys.argv[1]).read_text(encoding="utf-8")
@@ -97,6 +96,9 @@ markers=[
 assert all(marker in text for marker in markers), "Unexpected TT UART pin-map"
 print("PASS | Candidate wrapper static interface | TT 8+8+8, CPB=16")
 PY
+then
+    fail "Candidate pin map" "Wrapper header/mapping does not match expected"
+fi
 say PASS "Candidate pin preflight" "TT top interface and uio_oe=0x3C"
 mkdir -p "$BASE"
 WORK="$(mktemp -d "$BASE/run-XXXXXXXX")"

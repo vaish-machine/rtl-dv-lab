@@ -5,7 +5,7 @@
 | Existing repo baseline inspected and preserved | PASS |
 | G0 Host/WSL2 + RTL tool smoke tests | PASS — Ubuntu 24.04 on G:, Git, Icarus/Verilator/Yosys counter smoke tests |
 | G1 Freeze UART specification | Functional v0.2 candidate documented; design and shuttle constraints not yet frozen |
-| G2 Implement and verify RTL | Directed UART Icarus regressions PASS at CPB=16 and CPB=8; Verilator -Wall lint BLOCKED (3 warnings); Yosys UART synthesis pending |
+| G2 Implement and verify RTL | Directed UART Icarus regressions PASS at CPB=16 and CPB=8; three WIDTHTRUNC warnings identified and fixes committed; lint/synthesis rerun PENDING |
 | G3 Synthesis/SDC/pre-route STA | PENDING |
 | G4 Floorplan/place/CTS/route | PENDING |
 | G5 Post-route STA, DRC, LVS and review | PENDING |
@@ -13,7 +13,7 @@
 | G7 Actual submission accepted | PENDING |
 | G8 Real silicon arrived and validated | PENDING |
 
-Historical note: the initial documentation-only commit had no EDA installation or simulation evidence. Subsequent Stage 0I **counter** toolchain smoke tests now passed; the UART candidate regression remains unexecuted on the user's PC. No physical layouts, shuttles, accepted submission or silicon evidence exists.
+Historical note: the initial documentation-only commit had no EDA installation or simulation evidence. Subsequent Stage 0I **counter** toolchain smoke tests now passed; the two UART directed Icarus regressions passed (CPB=8 and 16) while Verilator -Wall and UART Yosys remain open. No physical layouts, shuttles, accepted submission or silicon evidence exists.
 
 **2026-11-15 actual Windows preflight (user-provided):** Windows 11 Home Single Language; RAM 15.9 GB; free G: 107.8 GB; Intel i7-9750H. Resources PASS. Git not found in PATH. WSL reports `Wsl/CallMsi/Install/REGDB_E_CLASSNOTREG`. Docker not found (optional). The WSL issue blocks the Linux ASIC toolchain; no repair has been attempted.
 
@@ -51,3 +51,5 @@ Historical note: the initial documentation-only commit had no EDA installation o
 **2026-11-16 Stage 1A first execution (user-provided): FAIL at first Icarus compile (CLKS_PER_BIT=16).** Linux user, RTL toolchain and clean main Git checkout PASS; fast-forward succeeded to commit `0b68c41ebd95`; source workspace `G:\C-Drive-Backup-PreReset\Temp\ASIC-Stage1A-UART.VmhsaPTr`; full log `G:\C-Drive-Backup-PreReset\Temp\ASIC-Stage1A-UART-20261116-032428.log`. No simulation/lint/Yosys UART result was produced. The exact Icarus diagnostic is not present in the user-provided excerpt; code audit identified **undeclared reset-test references `rx_valid`/`rx_framing_error`** in `tb/tb_uart_core.sv` when actual wires are `loop_valid`/`loop_framing_error`. Fixed those references and included direct_RX pulse reset checks; also changed RX START timer load to sized `LAST_TICK`. Updated baseline runner to print compact error excerpts on subsequent compile/lint/synthesis failure. Await actual rerun results; do not claim UART RTL PASS, G2 closure or physical implementation.
 
 **2026-11-16 Stage 1A rerun (user-provided): PARTIAL PASS, lint blocked.** Git preflight and fast-forward PASS (local main HEAD `2476c2887194`), both self-checking Icarus UART regressions PASS (`CLKS_PER_BIT=16` and `=8`). Verilator `--lint-only -Wall` returned failure due to 3 warnings. User-visible compact excerpt included only `%Error: Exiting due to 3 warning(s)`; **warning categories and source lines were not supplied**, so no RTL issue/waiver may yet be inferred. Yosys UART synthesis was **not reached** by script. Full log exists only on user's Windows machine at `G:\C-Drive-Backup-PreReset\Temp\ASIC-Stage1A-UART-20261116-033902.log`. Next: extract `%Warning-*` and its source context from this exact log (do not request or expose full log). The run script's `show_errors` filter was updated to match Verilator `%Warning` lines in future runs. No lint waivers or `-Wno-fatal` shortcut used; G2 remains OPEN.
+
+**2026-11-16 Stage 1A warning diagnosis (user-provided):** The three Verilator warnings were all `%Warning-WIDTHTRUNC` in timer localparams: `rtl/uart_tx.sv:14` for `LAST_TICK` and `rtl/uart_rx.sv:15-16` for `LAST_TICK` and `HALF_TICK`. Cause: 32-bit integer parameter arithmetic was implicitly narrowed to the CW-bit timer width. Replaced these definitions with full-width integer intermediates and explicit `[CW-1:0]` part-selects. Timer values are unchanged for CPB=8 or 16. Changes are committed but **not yet rerun on the user's machine**; clean lint, simulation and Yosys UART synthesis still require actual outputs. No lint suppression/waiver was introduced.

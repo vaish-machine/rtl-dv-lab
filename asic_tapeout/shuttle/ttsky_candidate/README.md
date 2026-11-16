@@ -64,3 +64,9 @@ Stage 2C and 2F GDS hashes before and after. No GDS, PDK or RTL changes.
 
 Reference: https://www.tinytapeout.com/hdl/important/
 Reference: https://github.com/TinyTapeout/ttsky-verilog-template
+
+
+## Stage 3A result; Stage 3B official template dry-run
+Stage 3A actual user-run (2026-11-16): Icarus/Yosys wrapper smoke PASS: I/O mask 0x3C, TX 0xA5, RX 0x5A, RX valid/error, original GDS SHA256s unchanged, Git clean.
+**Stage 3B PREPARED, NOT RUN:** scripts/run-ttsky-template-integration-wsl.sh stages the pinned official SKY template (commit a42e6662fab316e93b4e26399e21d41664a460b7) in a separate G:-backed Ubuntu ext4 directory and overlays the unchanged UART RTL, TT wrapper, info.stage3b.yaml, test/Makefile source list and official test/tb.v top name. It checks the official harness compile with Icarus and structural hierarchy with Yosys, and runs local cocotb only if already installed (otherwise explicit SKIP). No provider GDS/CI or new user repository is created.
+**IMPORTANT:** Metadata tiles: 1x1 is the unverified official-template placeholder, NOT a proven tile fit. The provisional 10MHz clock is not a finalized provider clock. Tile pricing, real IO/CDC/MTBF, physical fit, official CI, submission and purchase are OPEN.

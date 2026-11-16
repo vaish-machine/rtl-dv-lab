@@ -1,6 +1,6 @@
 # Exploratory UART 8N1 sky130A physical implementation — Stage 2C
 
-**Status:** first real UART flow attempted on the user's workstation and **FAILED at Odb.CustomIOPlacement**; corrected pin-order config and preflight guard committed, rerun **PENDING**. This is a **digital macro/core**, not a fabricated chip or shuttle-integrated design.
+**Status:** corrected Stage 2C full exploratory UART physical flow **PASS** with verified final GDSII. Stage 2D read-only metrics extraction **PASS** (307 metrics), but route-DRC entries range 0–8 and generic fallback SDC remains; Stage 2E exact-key audit **PENDING**. This is a digital core, not fabricated silicon or a signed-off shuttle design.
 
 ## Source and configuration
 
@@ -41,4 +41,10 @@ The first run reported non-fatal generic SDC fallback warnings: `PNR_SDC_FILE` a
 
 Actual user-machine execution after the pin grammar fix **PASS**: four side directives and 24 scalar top-level UART pins mapped uniquely, LibreLane 3.0.17 Classic process exit zero, and nonempty `final/gds/uart_core.gds` output saved in `/home/vaish/DevTools/LibreLane/uart_sky130_explore/uart-core-alMhK5du/runs/explore-20261116-061728/`. GDS file **2,053,232 bytes**; SHA-256 **`3ab1c89ee9de3d087ca261f7835aacbd8f21afef79d254e72ec9c2bb1d46dbf3`**. Original stdout log `/home/vaish/DevTools/LibreLane/uart_sky130_explore/uart-core-alMhK5du/librelane-explore-20261116-061728.log`; compact G: log `ASIC-Stage2C-UART-PHY-20261116-061723.log`. Git worktree clean; original 100 ns / 250 um square assumptions unchanged. This is **only exploratory GDS generation**, not a production or shuttle signoff.
 
-Next: [Stage 2D independent GDS checksum and metrics audit](../../scripts/audit-uart-sky130-wsl.sh) will read the **existing run** and report timing, synthesis area, DRC/LVS, violations and power *if the flow produced corresponding metrics*. Missing metrics remain unverified; generic fallback SDC is not equivalent to a reviewed UART IO/CDC constraint set. The Stage 2D audit itself has not yet been executed.
+Next: [Stage 2D independent GDS checksum and metrics audit](../../scripts/audit-uart-sky130-wsl.sh) will read the **existing run** and report timing, synthesis area, DRC/LVS, violations and power *if the flow produced corresponding metrics*. Missing metrics remain unverified; generic fallback SDC is not equivalent to a reviewed UART IO/CDC constraint set. Stage 2D has since executed; its results are summarized below.
+
+## Stage 2D results — observed, not yet approved
+
+User-confirmed read-only audit of the exact successful run: GDSII size and SHA256 PASS, source revision PASS, flow completion marker PASS, **307 final metrics keys** parsed. Reported Magic DRC errors **0** and LVS errors **0** (LVS net and device differences 0), but the route DRC metric family spans **0–8 across five entries**, so a final-stage DRC-clean conclusion is not justified yet. Setup/hold WNS, TNS and violation counts shown as zero under **generic fallback SDC**; this must not be cited as timing closure under final operating conditions. Area and cell count ranges aggregate several different metric keys and should not be interpreted as a final PPA point; quoted total power lacks verified units/conditions. Reports for post-route STA, Magic/KLayout DRC and Netgen LVS were present as step directories, which is not independent signoff. Full Stage 2D metrics saved by user under `G:\C-Drive-Backup-PreReset\Temp\ASIC-Stage2D-UART-Metrics-20261116-064301.json`.
+
+[Stage 2E exact-key route DRC and physical report inspection](../../scripts/audit-uart-drc-details.py) is prepared but **not yet run**. It only reads the preserved physical run and writes detailed evidence to G: Temp; it does not modify the RTL, GDSII, reports or Git. Next decision depends on whether nonzero route DRC belongs to transient intermediate routing steps or the final routed design.

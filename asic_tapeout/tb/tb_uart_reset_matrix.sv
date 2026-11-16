@@ -70,13 +70,13 @@ module tb_uart_reset_matrix;
     end
 
     function automatic bit frame_level(input integer cycle_index, input [7:0] payload);
-        integer cell;
+        integer slot_number;
         begin
-            cell = cycle_index / CPB;
-            if (cell == 0)
+            slot_number = cycle_index / CPB;
+            if (slot_number == 0)
                 frame_level = 1'b0;
-            else if (cell <= 8)
-                frame_level = payload[cell - 1];
+            else if (slot_number <= 8)
+                frame_level = payload[slot_number - 1];
             else
                 frame_level = 1'b1;
         end

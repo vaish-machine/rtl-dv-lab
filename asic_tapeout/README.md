@@ -1,6 +1,6 @@
 # Solo ASIC Tapeout — UART 8N1
 
-**Status: PLANNING.** Start from a small UART 8N1 TX/RX. Preserve ../mux10_uvm_starter unchanged.
+**Status: ENVIRONMENT VERIFIED; INITIAL UART RTL/TEST CANDIDATE COMMITTED.** Stage 0I Icarus, Verilator and Yosys smoke checks PASS on Ubuntu 24.04 WSL2. UART-specific tests are NOT YET RUN. Preserve ../mux10_uvm_starter unchanged.
 
 Goal: independently execute specification, RTL, independent verification, synthesis, SDC/STA, floorplanning, placement, CTS, routing, physical verification and a fabrication-shuttle submission, with AI-agent assistance.
 
@@ -10,14 +10,14 @@ Two separate deliverables:
 
 Navigation:
 - [45-day ROADMAP](ROADMAP.md)
-- [UART SPEC](SPEC.md) (draft; freeze before coding)
+- [UART SPEC](SPEC.md) (functional baseline candidate, final freeze still pending)
 - [VERIFICATION_PLAN](VERIFICATION_PLAN.md)
 - [TOOLCHAIN for Windows/WSL2](TOOLCHAIN.md)
 - [SIGNOFF_CHECKLIST](SIGNOFF_CHECKLIST.md)
 - [STATUS](STATUS.md)
 - [Read-only host inspection script](scripts/inspect-host.ps1)
 
-Project source to be added after spec approval: rtl/, tb/, physical/, shuttle/ and tools/. Keep generated files, large logs and PDK builds out of Git.
+Candidate source: [rtl/uart_core.sv](rtl/uart_core.sv), [rtl/uart_tx.sv](rtl/uart_tx.sv), [rtl/uart_rx.sv](rtl/uart_rx.sv), [tb/tb_uart_core.sv](tb/tb_uart_core.sv). Run the guarded [Stage 1A UART regression](scripts/run-uart-baseline-wsl.sh) on the user's G:-backed Ubuntu WSL environment to establish actual UART simulation/lint/generic synthesis results. Spec G1 review and verification G2 remain open. Physical, shuttle and tool-generated outputs stay out of Git.
 
 External references:
 - https://librelane.readthedocs.io/en/latest/

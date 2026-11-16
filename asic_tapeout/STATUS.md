@@ -7,8 +7,8 @@
 | G1 Freeze UART specification | Functional v0.2 candidate documented; design and shuttle constraints not yet frozen |
 | G2 Implement and verify RTL | Stages 1A–1D PASS; Stage 1E bounded safety 4/4 PASS + TX cover PASS; comprehensive G2/CDC still OPEN |
 | G3 SKY130 synthesis/STA exploration | Stage 2L corrected nine-corner tx_valid timing-path classification PASS, all positive slack; provisional STA only, CDC/IO signoff OPEN |
-| G4 Floorplan/place/CTS/route | Exploratory LibreLane Classic flow completed in Stage 2C; detailed route/placement result review OPEN |
-| G5 Post-route STA, DRC, LVS and review | Stage 2E: final route DRC=0 (intermediate iter 0=3, 2=8); Magic/KLayout DRC=0, LVS=0; generic SDC unresolved, signoff OPEN |
+| G4 Floorplan/place/CTS/route | Standalone SKY130 Stage 2F constrained exploratory GDS PASS; official TT wrapper 3x2 local physical trial Stage 3E PREPARED, NOT RUN |
+| G5 Post-route STA, DRC, LVS and review | Standalone Stage 2F post-route DRC/LVS counters=0 and provisional 9-corner setup/hold metrics PASS; real TT provider DRC/precheck, CDC and timing signoff OPEN |
 | G6 Integrate official shuttle template and CI | Stages 3A–3D local wrapper/template/cocotb/official tile geometry PASS; Stage 3E isolated 3x2 TT-footprint physical trial PREPARED, NOT RUN; official provider GDS/precheck and tile signoff OPEN |
 | G7 Actual submission accepted | PENDING |
 | G8 Real silicon arrived and validated | PENDING |

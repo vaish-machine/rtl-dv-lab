@@ -1,6 +1,6 @@
 # Solo ASIC Tapeout — UART 8N1
 
-**Status: ENVIRONMENT VERIFIED; INITIAL UART RTL/TEST CANDIDATE COMMITTED.** Stage 0I Icarus, Verilator and Yosys smoke checks PASS on Ubuntu 24.04 WSL2. UART-specific tests are NOT YET RUN. Preserve ../mux10_uvm_starter unchanged.
+**Status: ENVIRONMENT VERIFIED; UART DIRECTED SIMULATION PARTIAL PASS.** Stage 0I Icarus, Verilator and Yosys counter smoke checks PASS on Ubuntu 24.04 WSL2. Initial UART Icarus regressions PASS at CPB=8 and CPB=16; Verilator -Wall identified three timer-width warnings, now addressed in candidate RTL; lint rerun and UART Yosys synthesis still pending. Preserve ../mux10_uvm_starter unchanged.
 
 Goal: independently execute specification, RTL, independent verification, synthesis, SDC/STA, floorplanning, placement, CTS, routing, physical verification and a fabrication-shuttle submission, with AI-agent assistance.
 

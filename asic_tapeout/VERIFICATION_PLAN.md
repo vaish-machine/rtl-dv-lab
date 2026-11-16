@@ -37,13 +37,26 @@ Sources: rtl/uart_tx.sv, rtl/uart_rx.sv, rtl/uart_core.sv, tb/tb_uart_core.sv. R
 
 **Stage 1A complete:** Icarus directed regressions CPB=16 and 8, Verilator -Wall lint and Yosys generic synthesis have PASS results from the user's environment. Further verification below remains open. The earlier Stage 0I counter smoke was separate.
 
-## Stage 1B — extended deterministic stress (prepared, not yet executed)
+## Stage 1B — extended deterministic stress (PASS on user's WSL machine)
 
 New independent interface-level testbench: `tb/tb_uart_stress.sv`; controlled runner: `scripts/run-uart-stress-wsl.sh`. Planned runs span `CLKS_PER_BIT` 8, 9, 16 and 32 with reproducible decimal seeds 20261116 and 20261117 (8 total configurations). The stress test exercises pseudo-random TX bytes, illegitimate TX_VALID requests while busy, 50 consecutive external RX bytes without extra idle clocks, malformed stops/data preservation, short-start glitch, long break recovery, reset during RX, and parallel independent TX and RX transactions. The scoreboard sees **only top-level interfaces**, not DUT internal FSMs or counters. Generated files and logs go under G: Temp, source clone is fast-forwarded only if clean and on expected main.
 
-- [ ] Stage 1B: 8/8 simulation configurations PASS; record actual outputs and seeds.
+- [x] Stage 1B: all 8/8 simulation configurations PASS (user-provided log from 2026-11-16, seeds 20261116/20261117, CPB 8/9/16/32).
 - [ ] Review unexpected behavior and testbench timing/race limitations, even if PASS.
 - [ ] Additional independent asynchronous phase/baud-offset stress and coverage still required.
 - [ ] Parameter corner and bounded formal checks before G2 closure.
 
-No Stage 1B pass is claimed until independently run on the user's Ubuntu machine. Generic synthesis/lint pass does not mean PDK-mapped signoff.
+Stage 1B PASS is based on execution output supplied from the user's Ubuntu machine, not on GitHub commit status. This does not establish full verification closure or PDK-mapped signoff.
+
+
+## Stage 1C — pin checkers, scenario-hit counts and asynchronous phase (PREPARED, NOT RUN)
+
+Source: tb/uart_interface_checkers.sv (Icarus-compatible **procedural interface assertions**, not IEEE SVA/formal proof), tb/tb_uart_monitored.sv, tb/tb_uart_async_phase.sv, scripts/run-uart-assertions-phase-wsl.sh.
+
+- [ ] All 8 repeatable monitored Stage 1B stress configurations PASS, with a black-box reference checker validating exact TX start/data/stop timing, tx_ready timing and accepted bytes.
+- [ ] Both independent RX interfaces satisfy one-cycle valid/error pulses, mutual exclusivity, and stored rx_data immutability except on valid frame or reset.
+- [ ] Scenario-hit gate: TX accepted handshakes 60, loopback frames 60, independent RX good frames 73 and framing errors 4 for each stress configuration. These are a **small set of observed scenario counts**, not comprehensive functional coverage.
+- [ ] Additional independent off-clock serial stimuli: start transitions 1, 3 and 4 ns after a falling clock; transmitter bit duration CPB*10 ns plus -1/0/+1 ns drift. For each CPB=8/9/16/32, check 36 valid frames and nine bad-stop events.
+- [ ] Review checker assumptions and residual gaps, including CDC/metastability MTBF, input transition jitter wider than test envelope, reset during every RX state, response to arbitrary baud mismatch and real shuttle IO constraints.
+
+Actual user WSL results are required before any Stage 1C item is marked PASS. These checks are simulation evidence, not proof of formal completeness or physical implementation.

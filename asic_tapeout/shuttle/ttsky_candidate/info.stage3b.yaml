@@ -1,0 +1,43 @@
+# Stage 3B provisional official-template metadata overlay, NOT a submission.
+# 1x1 tile is an UNVALIDATED TEMPLATE PLACEHOLDER, not confirmed capacity.
+# Actual tile allocation must be determined by TT provider GDS CI.
+project:
+  title: "UART 8N1 educational core"
+  author: "vaish-machine"
+  discord: ""
+  description: "Parallel TX/RX UART demonstrator with 8N1 frames"
+  language: "Verilog"
+  clock_hz: 10000000  # exploratory only; must match actual selected shuttle clock
+  tiles: "1x1"       # PLACEHOLDER: do not submit without provider fit results
+  top_module: "tt_um_vaish_uart"
+  source_files:
+    - "uart_tx.sv"
+    - "uart_rx.sv"
+    - "uart_core.sv"
+    - "tt_um_vaish_uart.v"
+pinout:
+  ui[0]: "TX D0"
+  ui[1]: "TX D1"
+  ui[2]: "TX D2"
+  ui[3]: "TX D3"
+  ui[4]: "TX D4"
+  ui[5]: "TX D5"
+  ui[6]: "TX D6"
+  ui[7]: "TX D7"
+  uo[0]: "RX D0"
+  uo[1]: "RX D1"
+  uo[2]: "RX D2"
+  uo[3]: "RX D3"
+  uo[4]: "RX D4"
+  uo[5]: "RX D5"
+  uo[6]: "RX D6"
+  uo[7]: "RX D7"
+  uio[0]: "TX valid input"
+  uio[1]: "Serial RX input"
+  uio[2]: "TX ready output"
+  uio[3]: "Serial TX output"
+  uio[4]: "RX valid output"
+  uio[5]: "RX framing error"
+  uio[6]: ""
+  uio[7]: ""
+yaml_version: 6

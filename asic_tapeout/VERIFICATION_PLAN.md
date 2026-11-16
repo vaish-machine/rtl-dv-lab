@@ -62,12 +62,23 @@ Source: tb/uart_interface_checkers.sv (Icarus-compatible **procedural interface 
 Original Stage 1C results were supplied as 12/12 PASS by the user, with clean working tree. Review identified an implicit timescale in the shared checker used with a nanosecond-timed async stimulus; fix committed and its actual effectiveness must be revalidated. Simulation evidence is not formal completeness or physical signoff.
 
 
-## Stage 1D — timed checker revalidation and UART reset-phase coverage (PREPARED, NOT RUN)
+## Stage 1D — timed checker revalidation and UART reset-phase coverage (PASS)
 
-- [ ] Repeat the complete Stage 1C eight monitored stress plus four asynchronous RX test configurations after setting the shared checker timescale explicitly to 1ns/1ps. Require 8/8 and 4/4 PASS markers.
-- [ ] Independent black-box 8N1 reset test: inject synchronous active-low reset at the early portion of start, each of eight data-bit intervals and stop, separately for TX and RX (10 TX and 10 RX nominal phase bins per divider).
-- [ ] After **each** TX reset, transmit a fully verified recovery byte; after **each** RX reset, check no spurious event, then receive and scoreboard a clean recovery byte.
-- [ ] Run the reset matrix at CPB 8, 9, 16 and 32 (four runs, 80 bit-phase/configuration tuples). Require observed bin hit count one for every TX/RX phase and a clean Git working tree.
-- [ ] Record actual user-machine run output, failed assertions (if any), and check whether all assertions actively sampled every relevant interface.
+- [x] Revalidated the complete Stage 1C eight monitored stress + four asynchronous RX configurations (12/12 PASS, explicit 1ns checker timescale).
+- [x] Independent 8N1 black-box reset test passed for early reset at start/eight-data/stop intervals, TX and RX separately.
+- [x] Verified TX recovery and RX no-spurious-event + recovery after reset per phase.
+- [x] Reset matrix PASS at CPB 8/9/16/32 (4/4 runs, 80 phase/configuration tuples, clean Git tree).
+- [x] Recorded actual user-machine PASS output (no reported failed assertions), local G: log `ASIC-Stage1D-UART-20261116-051307.log`. Assertion sampling is scoped to the implemented testbench and still merits independent review.
 
-Sources: tb/tb_uart_reset_matrix.sv, tb/uart_interface_checkers.sv, scripts/run-uart-reset-matrix-wsl.sh. This is **directed reset coverage**, not a final functional coverage percentage. CDC/MTBF, exhaustive formal checks, broad reset-edge exploration, post-synthesis equivalence and full PDK/physical signoff are still pending. No Stage 1D pass is claimed until the user runs it.
+Sources: tb/tb_uart_reset_matrix.sv, tb/uart_interface_checkers.sv, scripts/run-uart-reset-matrix-wsl.sh. This is **directed reset coverage**, not a final functional coverage percentage. CDC/MTBF, exhaustive formal checks, broad reset-edge exploration, post-synthesis equivalence and full PDK/physical signoff are still pending. Stage 1D PASS is based on the user's executed WSL output. Reset-phase scenario hits are not a functional coverage percentage or exhaustive formal proof.
+
+
+## Stage 1E — preliminary bounded safety formal and CDC review (PREPARED, NOT RUN)
+
+- [ ] Check whether Ubuntu-packaged yosys-smtbmc and Z3 are available alongside the installed Yosys 0.33.
+- [ ] Run bounded Yosys SMTBMC safety properties for TX and RX at CLKS_PER_BIT=8 and 16, 32 sampled time steps each (four bounded configurations), with an explicit synchronous initial reset assumption and arbitrary clock-sampled inputs.
+- [ ] Run at least one TX handshake reachability cover so the initial-reset assumptions do not accidentally make all TX properties vacuous.
+- [ ] Record exact solver outcome and any counterexample; failing proof or unsupported older parser/tool must remain a FAIL, not waived or silently suppressed.
+- [ ] Review [CDC_RESET_REVIEW.md](CDC_RESET_REVIEW.md) and leave integration-dependent CDC, timing, synchronizer placement, reset release and physical signoff OPEN.
+
+Files: formal/uart_formal_safety.sv, scripts/run-uart-formal-wsl.sh. **No Stage 1E test has executed on the user's WSL environment yet**. These are preliminary bounded checks only: even a PASS cannot establish unbounded correctness or full 8N1 frame proof for all divider values.

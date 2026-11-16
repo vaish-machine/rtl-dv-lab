@@ -53,10 +53,21 @@ Stage 1B PASS is based on execution output supplied from the user's Ubuntu machi
 
 Source: tb/uart_interface_checkers.sv (Icarus-compatible **procedural interface assertions**, not IEEE SVA/formal proof), tb/tb_uart_monitored.sv, tb/tb_uart_async_phase.sv, scripts/run-uart-assertions-phase-wsl.sh.
 
-- [ ] All 8 repeatable monitored Stage 1B stress configurations PASS, with a black-box reference checker validating exact TX start/data/stop timing, tx_ready timing and accepted bytes.
-- [ ] Both independent RX interfaces satisfy one-cycle valid/error pulses, mutual exclusivity, and stored rx_data immutability except on valid frame or reset.
-- [ ] Scenario-hit gate: TX accepted handshakes 60, loopback frames 60, independent RX good frames 73 and framing errors 4 for each stress configuration. These are a **small set of observed scenario counts**, not comprehensive functional coverage.
-- [ ] Additional independent off-clock serial stimuli: start transitions 1, 3 and 4 ns after a falling clock; transmitter bit duration CPB*10 ns plus -1/0/+1 ns drift. For each CPB=8/9/16/32, check 36 valid frames and nine bad-stop events.
+- [x] All 8 repeatable monitored Stage 1B stress configurations PASS on the user's workstation (Stage 1C original); **checker timebase fix pending revalidation in Stage 1D**.
+- [x] Both independent RX interfaces checked in the Stage 1C original run; **off-clock checker timebase corrected, pending revalidation in Stage 1D**.
+- [x] Stage 1C scenario-hit gate PASS across eight configurations (TX accepted=60, loopback=60, direct RX=73, framing errors=4 per run). These are **scenario counts**, not comprehensive functional coverage.
+- [x] Stage 1C off-clock serial stimuli PASS for CPB=8/9/16/32 with 36 valid frames and 9 bad stops each; **RX pin checker had unspecified timescale in original run, so Stage 1D will recheck with explicit 1 ns sample timing**.
 - [ ] Review checker assumptions and residual gaps, including CDC/metastability MTBF, input transition jitter wider than test envelope, reset during every RX state, response to arbitrary baud mismatch and real shuttle IO constraints.
 
-Actual user WSL results are required before any Stage 1C item is marked PASS. These checks are simulation evidence, not proof of formal completeness or physical implementation.
+Original Stage 1C results were supplied as 12/12 PASS by the user, with clean working tree. Review identified an implicit timescale in the shared checker used with a nanosecond-timed async stimulus; fix committed and its actual effectiveness must be revalidated. Simulation evidence is not formal completeness or physical signoff.
+
+
+## Stage 1D — timed checker revalidation and UART reset-phase coverage (PREPARED, NOT RUN)
+
+- [ ] Repeat the complete Stage 1C eight monitored stress plus four asynchronous RX test configurations after setting the shared checker timescale explicitly to 1ns/1ps. Require 8/8 and 4/4 PASS markers.
+- [ ] Independent black-box 8N1 reset test: inject synchronous active-low reset at the early portion of start, each of eight data-bit intervals and stop, separately for TX and RX (10 TX and 10 RX nominal phase bins per divider).
+- [ ] After **each** TX reset, transmit a fully verified recovery byte; after **each** RX reset, check no spurious event, then receive and scoreboard a clean recovery byte.
+- [ ] Run the reset matrix at CPB 8, 9, 16 and 32 (four runs, 80 bit-phase/configuration tuples). Require observed bin hit count one for every TX/RX phase and a clean Git working tree.
+- [ ] Record actual user-machine run output, failed assertions (if any), and check whether all assertions actively sampled every relevant interface.
+
+Sources: tb/tb_uart_reset_matrix.sv, tb/uart_interface_checkers.sv, scripts/run-uart-reset-matrix-wsl.sh. This is **directed reset coverage**, not a final functional coverage percentage. CDC/MTBF, exhaustive formal checks, broad reset-edge exploration, post-synthesis equivalence and full PDK/physical signoff are still pending. No Stage 1D pass is claimed until the user runs it.

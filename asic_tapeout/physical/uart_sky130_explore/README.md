@@ -1,6 +1,6 @@
 # Exploratory UART 8N1 sky130A physical implementation — Stage 2C
 
-**Status:** configuration and runner prepared; actual UART flow not yet executed on user's machine. This is a **digital macro/core**, not a fabricated chip or shuttle-integrated design.
+**Status:** first real UART flow attempted on the user's workstation and **FAILED at Odb.CustomIOPlacement**; corrected pin-order config and preflight guard committed, rerun **PENDING**. This is a **digital macro/core**, not a fabricated chip or shuttle-integrated design.
 
 ## Source and configuration
 
@@ -30,3 +30,9 @@ It treats nonzero LibreLane exit, timeout or missing/nonempty final GDS as a fai
 5. Never describe an RTL-to-GDSII run as a foundry-certified signoff, an accepted tapeout or silicon validation.
 
 Sources: official LibreLane 3.0.17 examples and configuration docs in librelane/librelane repository.
+
+## Stage 2C first-run failure and correction (2026-11-16)
+
+The first user-machine physical run reached the LibreLane Odb.CustomIOPlacement step, but stopped with `identifier/regex '#' requires a direction to be set first`. The first two lines of pin_order.cfg were ordinary `# ...` prose comments. LibreLane 3.0.17's `ioplace_parser.parse` treats only specific directives (`#N`, `#S`, `#E`, `#W`, optionally reversed `#NR` etc.) as control syntax; other `#` text becomes an invalid pin regex, and a regex before the initial side is an error. Removed the unsupported comment lines so the file begins with `#N`. The Stage 2C runner now validates the directives and checks every one of 24 top-level scalar port names (8 TX data bits and 8 RX data bits included) maps to exactly one pattern, before invoking LibreLane.
+
+The first run reported non-fatal generic SDC fallback warnings: `PNR_SDC_FILE` and `SIGNOFF_SDC_FILE` were not specified. For this *exploration* they are acceptable only as a limitation; before any timing closure or signoff, provide reviewed, realistic clock, IO input/output delays, RX asynchronous treatment, reset assumptions, loads, and PDK corner constraints. The UART RTL files were unchanged by this fix. No full-flow or final GDSII PASS has been observed yet. Original run workspace `/home/vaish/DevTools/LibreLane/uart_sky130_explore/uart-core-UlhrMUrC` and diagnostics under G: Temp are preserved.

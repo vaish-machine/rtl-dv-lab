@@ -47,3 +47,8 @@ Official links:
 5. Distinguish a generated GDSII macro, a provider-accepted tapeout submission and physically received/tested silicon.
 
 **No final IO pinout, clock value, source reset policy, PDK revision, area or PPA value is frozen by this planning document.**
+
+## Executed setup milestones
+
+- Stage 2A (user-provided 2026-11-16): **PASS**, release file and SHA256 verified, G: free 94.9 GB, no execution.
+- Stage 2B: **PREPARED, NOT RUN**. See [guarded AppImage copy and official smoke script](scripts/install-smoke-librelane-wsl.sh). Runs AppImage's `librelane --smoke-test` in native G:-backed Ubuntu ext4. Some Ubuntu 24.04 configurations block unprivileged namespaces via AppArmor; such errors are reported without silently adjusting security policy. Exact host prerequisites remain to be verified.

@@ -1,4 +1,4 @@
-# UART 8N1 — physical implementation preparation (Stage 2, not yet executed)
+# UART 8N1 — physical implementation milestones and remaining signoff gates
 
 ## Current evidence and scope
 
@@ -8,7 +8,7 @@
 - Stage 1C: 12 monitored stress/async RX configurations PASS (revalidated as part of Stage 1D).
 - Stage 1D: TX/RX reset matrix PASS for 80 bit-phase/configuration tuples.
 - Stage 1E: four 32-step Yosys SMTBMC/Z3 safety checks PASS and TX handshake reachability PASS. These do not prove a whole UART frame or unbounded liveness.
-- **No mapped SKY130 netlist, routed layout, STA, DRC, LVS, power signoff, shuttle acceptance or tested silicon yet.**
+- **Update:** Stage 2C and 2F subsequently generated routed SKY130 UART GDSII; Stage 2G compared those saved results. **No approved timing, CDC, full physical signoff, shuttle acceptance or tested silicon yet.**
 
 ## Recommended next toolchain
 
@@ -80,3 +80,9 @@ Stage 2F adds an **experimental**, version-controlled [SDC](physical/uart_sky130
 Stage 2F constrained exploratory LibreLane Classic flow **PASS** in isolated G:-backed Ubuntu ext4. New GDS `uart_core.gds` 2,065,964 bytes SHA256 `d63d047d083548a649710ac194fcd09c110ad3f20bff65a6752d89da5e9dd7af`. Reused unchanged RTL, PDK sky130A and `sky130_fd_sc_hd`, and added explicit but **provisional** 100 ns clock / 0–10 ns synchronous input-output delay / 0.01 pF load / asynchronous RX source exception for both PNR and signoff SDC. Saved final `route__drc_errors`, `magic__drc_error__count`, `klayout__drc_error__count`, `design__lvs_error__count`, `timing__setup_vio__count` and `timing__hold_vio__count` all reported **0**; WNS 0 must not be treated as positive timing margin. Instance count 14,722 (not a failure), reported instance/core area 53,897.9, power `5.6522698287153617e-05` with units/activity not reviewed. Original Stage 2C GDS SHA256 unchanged, source Git clean. No signed-off STA/CDC, no wrapper or tapeout.
 
 Stage 2G [read-only comparison](scripts/audit-uart-sky130-sdc-compare.py) **PREPARED, NOT RUN**. It verifies hashes of both GDS files and source revision, checks actual resolved PNR/SIGNOFF_SDC_FILE paths and fallback warning absence, compares exact final metric keys and reports raw corner-specific entries without modifying the original or constrained run. Next post-audit work: freeze actual target clock and UART baud, reset/host handshake, IO constraints, synchronizer physical treatment, approved PDK/corners and shuttle top wrapper, then rerun verification/signoff with actual requirements.
+
+### Stage 2G actual comparison and Stage 2H per-corner audit
+
+Stage 2G user-provided output **PASS**: both GDS files matched known SHA256; original generic SDC fallback warning present, constrained run absent; its resolved PNR_SDC_FILE and SIGNOFF_SDC_FILE both point to the correct staged provisional SDC (SHA256 `a392f38145b384f86049925902721389a769e20273ab4e1d9d99cc0c9466ffc4`); 307 metrics compared. Exact final Stage2C vs Stage2F metric values: routing DRC 0 vs 0, Magic DRC 0 vs 0, KLayout DRC 0 vs 0, LVS 0 vs 0, setup/hold violations 0 vs 0, unannotated nets **4 vs 3**, 14,704 vs 14,722 instances, equal reported instance/core area 53,897.9 and utilization 0.0865659 vs 0.0847552. WNS/TNS zero under provisional budgets are not positive margin. Power totals differ but are not comparable as physical power guarantees without supply units, switching activity, operating modes and corner checks. The user saved exact evidence under G: Temp, filename `ASIC-Stage2G-UART-Comparison-20261116-080554.json`.
+
+Stage 2H [read-only post-PnR STA and net annotation audit](scripts/audit-uart-sta-annotation-wsl.py) **PREPARED, NOT RUN**. Uses LibreLane 3.0.17's known `checks.rpt` report structure and filtered unannotated metrics to identify residual driver names and whether the physically wired subset is affected; also surveys saved timing-path reports for `Startpoint`/`Endpoint` or `No paths found` evidence. Neither zero WNS nor generated GDS alone establishes timing coverage or final timing signoff. Actual clock, UART baud, IO budgets, reset policy, pad loads, PDK and accepted shuttle template all remain to freeze. All audit outputs remain on G:.

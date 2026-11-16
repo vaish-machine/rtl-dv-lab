@@ -94,9 +94,7 @@ say PASS "Isolated G:-backed workspace" "$WORK"
 cp -a "$SOURCE" "$WORK/template" ||
     fail "Copy official Stage 3B template" "Failed to stage independent source copy"
 # Confirm all local test prerequisites before installing Python-only packages.
-python3 - "$WORK/template" "$REPO" <<'PY' >"$WORK/template-check.log" 2>&1 || {
-    fail "Template input verification" "See template-check.log"
-}
+if ! python3 - "$WORK/template" "$REPO" >"$WORK/template-check.log" 2>&1 <<'PY'
 from pathlib import Path
 import re
 import sys
@@ -119,11 +117,17 @@ assert "yaml_version: 6" in yaml
 expected_sources={"uart_tx.sv","uart_rx.sv","uart_core.sv","tt_um_vaish_uart.v"}
 assert set(re.findall(r'(?m)^    - "([^"]+)"\s*$',yaml))==expected_sources
 for name in expected_sources:
-    assert (p/"src"/name).is_file(), name
-    assert (p/"src"/name).read_bytes()==(r/"asic_tapeout/rtl"/name).read_bytes() if name!="tt_um_vaish_uart.v" else (p/"src"/name).read_bytes()==(r/"asic_tapeout/shuttle/ttsky_candidate/src"/name).read_bytes()
+    actual=p/"src"/name
+    origin=(r/"asic_tapeout/shuttle/ttsky_candidate/src"/name
+            if name=="tt_um_vaish_uart.v" else r/"asic_tapeout/rtl"/name)
+    assert actual.is_file() and origin.is_file(), name
+    assert actual.read_bytes()==origin.read_bytes(), f"Copied RTL differs: {name}"
 assert (p/"test/test.py").read_bytes()==(r/"asic_tapeout/shuttle/ttsky_candidate/test/test.py").read_bytes()
 print("PASS | Copied Stage 3B template | sources, metadata, cocotb and official harness match Git")
 PY
+then
+    fail "Template input verification" "See template-check.log"
+fi
 say PASS "Pinned official template copy" "Original provider testbench, UART sources and cocotb module verified"
 if ! python3 -m venv "$WORK/venv" >"$WORK/venv.log" 2>&1; then
     fail "Python virtual environment" "python3 -m venv unavailable; no global/system changes attempted"
@@ -162,9 +166,7 @@ if ! (cd "$WORK/template/test" &&
     fail "Cocotb results.xml" "Test failures recorded or results missing"
 fi
 say PASS "Cocotb results.xml" "Official cocotb_tools.check_results confirmed test pass"
-python3 - "$WORK/template/test/results.xml" <<'PY' >>"$LOG" 2>&1 || {
-    fail "XML verification" "Unable to parse generated test results"
-}
+if ! python3 - "$WORK/template/test/results.xml" >>"$LOG" 2>&1 <<'PY'
 from pathlib import Path
 import sys
 import xml.etree.ElementTree as ET
@@ -177,6 +179,9 @@ failed=[t for t in tests if t.find("failure") is not None or t.find("error") is 
 assert not failed, f"cocotb XML recorded {len(failed)} failures"
 print("PASS | Cocotb XML summary |",len(tests),"testcase(s), zero failures")
 PY
+then
+    fail "XML verification" "Unable to parse generated test results"
+fi
 verify_gds "$GDS2C" "$SHA2C"
 verify_gds "$GDS2F" "$SHA2F"
 say PASS "Original UART layouts" "Both independent GDSII SHA256 values unchanged"

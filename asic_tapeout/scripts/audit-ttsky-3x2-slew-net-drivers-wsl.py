@@ -36,7 +36,7 @@ PINS=[
 CORNERS=("nom_ss_100C_1v60","max_ss_100C_1v60")
 INST=re.compile(r"(?ms)^[ \t]*(?P<cell>sky130_[A-Za-z0-9_$]+)[ \t]+(?P<inst>\\?[A-Za-z0-9_$./:-]+)[ \t]*\((?P<body>.*?)\)[ \t]*;")
 CONN=re.compile(r"\.([A-Za-z_][A-Za-z_0-9$]*)\s*\(\s*([^()]*?)\s*\)",re.S)
-OUTPUT_NAMES={"X","Y","Z","ZN","Q","Q_N","QN","IQ","IQ_N","CLKOUT","CO","COUT","SUM","S"}
+OUTPUT_NAMES={"X","Y","Z","ZN","Q","Q_N","QN","IQ","IQ_N","CLKOUT","CO","COUT","SUM"}
 LINES=[]
 
 def show(status,label,detail):

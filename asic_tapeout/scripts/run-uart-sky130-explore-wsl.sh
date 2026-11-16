@@ -90,6 +90,58 @@ assert c["VERILOG_FILES"]==["dir::src/uart_tx.sv","dir::src/uart_rx.sv","dir::sr
 assert c["IO_PIN_ORDER_CFG"]=="dir::pin_order.cfg"
 PY
 report PASS "Exploratory config" "UART CPB=16, 100 ns clock, 250 x 250 um die"
+# Preflight the pinned LibreLane 3.0.17 Odb.CustomIOPlacement grammar.
+# #N/#S/#E/#W are directives, NOT normal # comment headers.
+# Require every real top-level pin to be allocated once, and every pattern
+# to match a pin. Catch syntax typos before expensive physical design steps.
+if ! python3 - "$PIN" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+lines = Path(sys.argv[1]).read_text(encoding="utf-8").splitlines()
+sides = {}
+side = None
+for line_no, line in enumerate(lines, 1):
+    token = line.strip()
+    if not token:
+        continue
+    if token in ("#N", "#S", "#E", "#W"):
+        side = token[1:]
+        if side in sides:
+            raise ValueError(f"Duplicate side directive {token} at line {line_no}")
+        sides[side] = []
+    else:
+        if side is None:
+            raise ValueError(f"Pin order needs a side directive first (line {line_no}: {token})")
+        if token.startswith("#"):
+            raise ValueError(f"Unsupported # comment or directive at line {line_no}: {token}")
+        if token.startswith("@") or token.startswith("$"):
+            raise ValueError(f"Unexpected annotation/virtual pin at line {line_no}: {token}")
+        re.compile(token)
+        sides[side].append(token)
+if set(sides) != set("NESW"):
+    raise ValueError(f"Missing one of four sides: found {list(sides)}")
+ports = ["clk", "rst_n", "tx_valid", "tx_ready", "tx_o", "rx_i",
+         "rx_valid", "rx_framing_error"]
+ports += [f"tx_data[{i}]" for i in range(8)]
+ports += [f"rx_data[{i}]" for i in range(8)]
+for p in ports:
+    matches = [(side_name, pattern)
+               for side_name, patterns in sides.items()
+               for pattern in patterns if re.fullmatch(pattern, p)]
+    if len(matches) != 1:
+        raise ValueError(f"Top-level port {p} must match exactly once: {matches}")
+for side_name, patterns in sides.items():
+    for pattern in patterns:
+        if not any(re.fullmatch(pattern, p) for p in ports):
+            raise ValueError(f"Unmatched pattern on {side_name} side: {pattern}")
+print(f"PASS | Pin order preflight | {len(sides)} sides, {len(ports)} ports uniquely assigned")
+PY
+then
+    fail "Pin-order preflight" "Invalid LibreLane IO syntax or incomplete port mapping"
+fi
+report PASS "Pin-order syntax" "4 directives; 24 scalar core ports assigned once"
 report INFO "Technology" "sky130A / sky130_fd_sc_hd (provisional)"
 report INFO "Nominal UART baud" "10 MHz / 16 = 625000 (provisional)"
 G_FREE_KB="$(df -Pk "$ROOT" | awk 'NR==2 {print $4}')"

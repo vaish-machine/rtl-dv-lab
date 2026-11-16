@@ -29,7 +29,7 @@ say() {
 fail() {
     say FAIL "$1" "$2"
     if [[ -n "$WORK" ]]; then
-        for f in "$WORK/clone.log" "$WORK/compile.log" "$WORK/yosys.log" "$WORK/cocotb.log"; do
+        for f in "$WORK/template-check.log" "$WORK/clone.log" "$WORK/compile.log" "$WORK/yosys.log" "$WORK/cocotb.log"; do
             if [[ -s "$f" ]]; then
                 echo "INFO | Diagnostic tail | $f"
                 tail -n 11 "$f" || true
@@ -109,6 +109,8 @@ cp "$SRC/rtl/uart_tx.sv" "$SRC/rtl/uart_rx.sv" \
    "$SRC/rtl/uart_core.sv" "$TT/src/tt_um_vaish_uart.v" "$WORK/template/src/"
 cp "$TT/info.stage3b.yaml" "$WORK/template/info.yaml"
 cp "$TT/test/test.py" "$WORK/template/test/test.py"
+# Corrected second bug: in the overlay Python code, tb is a pathlib.Path.
+# Test module-name membership in the string text, not in the Path object.
 # The earlier heredoc had a dangling || failure handler placed ahead of
 # the Python body; Bash fed the failure-handler line to Python instead of
 # executing the actual patch. The corrected if/then surrounds the full body.
@@ -124,7 +126,8 @@ test=base/"test"
 tb=test/"tb.v"
 text=tb.read_text(encoding="utf-8")
 assert text.count("tt_um_example")==2, "Pinned official tb.v changed: expected one comment and one instantiation"
-tb.write_text(text.replace("tt_um_example","tt_um_vaish_uart"),encoding="utf-8")
+text=text.replace("tt_um_example","tt_um_vaish_uart")
+tb.write_text(text,encoding="utf-8")
 mk=test/"Makefile"
 make=mk.read_text(encoding="utf-8")
 assert make.count("PROJECT_SOURCES = project.v")==1, "Pinned Makefile changed"
@@ -144,8 +147,10 @@ assert set(sources)==set(files.split()) and len(sources)==4, sources
 for file in sources:
     assert (base/"src"/file).is_file(), file
 assert "PROJECT_SOURCES = "+files in make
-assert "tt_um_vaish_uart user_project" in tb
-assert "tt_um_example" not in tb
+assert "tt_um_vaish_uart user_project" in text
+assert "tt_um_example" not in text
+assert "tt_um_vaish_uart user_project" in tb.read_text(encoding="utf-8")
+print("PASS | Template overlay check | patched official tb.v uses candidate top")
 print("PASS | Template overlay consistency | official TB + source list + YAML v6")
 PY
 then

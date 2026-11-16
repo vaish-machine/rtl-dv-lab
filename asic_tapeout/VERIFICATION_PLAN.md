@@ -73,12 +73,20 @@ Original Stage 1C results were supplied as 12/12 PASS by the user, with clean wo
 Sources: tb/tb_uart_reset_matrix.sv, tb/uart_interface_checkers.sv, scripts/run-uart-reset-matrix-wsl.sh. This is **directed reset coverage**, not a final functional coverage percentage. CDC/MTBF, exhaustive formal checks, broad reset-edge exploration, post-synthesis equivalence and full PDK/physical signoff are still pending. Stage 1D PASS is based on the user's executed WSL output. Reset-phase scenario hits are not a functional coverage percentage or exhaustive formal proof.
 
 
-## Stage 1E — preliminary bounded safety formal and CDC review (PREPARED, NOT RUN)
+## Stage 1E — preliminary bounded safety formal (PASSED in bounded scope) and CDC review (OPEN)
 
-- [ ] Check whether Ubuntu-packaged yosys-smtbmc and Z3 are available alongside the installed Yosys 0.33.
-- [ ] Run bounded Yosys SMTBMC safety properties for TX and RX at CLKS_PER_BIT=8 and 16, 32 sampled time steps each (four bounded configurations), with an explicit synchronous initial reset assumption and arbitrary clock-sampled inputs.
-- [ ] Run at least one TX handshake reachability cover so the initial-reset assumptions do not accidentally make all TX properties vacuous.
-- [ ] Record exact solver outcome and any counterexample; failing proof or unsupported older parser/tool must remain a FAIL, not waived or silently suppressed.
+- [x] Verified yosys-smtbmc / Yosys 0.33 and Z3 4.8.12 on user's Ubuntu.
+- [x] Four BMC safety checks PASSED: UART TX and RX at CPB 8 and 16, each 32 sampled steps with initial synchronous reset assumption.
+- [x] TX handshake reachability cover PASSED.
+- [x] Recorded user-provided solver PASS outcomes; source head `948740b6defe` with clean working tree; no counterexample reported.
 - [ ] Review [CDC_RESET_REVIEW.md](CDC_RESET_REVIEW.md) and leave integration-dependent CDC, timing, synchronizer placement, reset release and physical signoff OPEN.
 
-Files: formal/uart_formal_safety.sv, scripts/run-uart-formal-wsl.sh. **No Stage 1E test has executed on the user's WSL environment yet**. These are preliminary bounded checks only: even a PASS cannot establish unbounded correctness or full 8N1 frame proof for all divider values.
+Files: formal/uart_formal_safety.sv, scripts/run-uart-formal-wsl.sh. **Stage 1E has user-provided 4/4 BMC PASS plus TX cover PASS.** A 32-step bound is shorter than an entire 8N1 frame at CPB=8/16; no full-frame liveness, unbounded proof or analog CDC evidence is established.
+
+## Remaining G2 verification exit gates
+
+- [ ] Review and freeze UART clock, baud, reset, divider support and wrapper timing assumptions (G1), then revisit tests using actual planned operating points.
+- [ ] Decide on stronger inductive/formal properties for **complete TX/RX frames**, or explicitly document bounded-only limitations in final design review.
+- [ ] Collect useful branch/FSM/toggle coverage or documented equivalent and analyze missing bins. Scenario hit counts alone are not a percentage.
+- [ ] Review and sign off synthesizer preservation/placement of input synchronizer, CDC/MTBF assumptions and IO/reset timing constraints in the actual technology/harness.
+- [ ] Retest official shuttle wrapper and PDK-mapped netlist against RTL golden behavior, plus timing signoff.

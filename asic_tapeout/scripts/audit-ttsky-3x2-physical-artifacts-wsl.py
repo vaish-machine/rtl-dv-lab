@@ -12,6 +12,7 @@ from __future__ import annotations
 from collections import deque
 from datetime import datetime
 import hashlib
+import getpass
 import json
 import os
 from pathlib import Path
@@ -125,7 +126,7 @@ def report_log():
 
 def main():
     print("===== ASIC STAGE 3F: TT 3X2 SAVED OUTPUT LOCATION AND PHYSICAL METRICS =====",flush=True)
-    if os.geteuid()==0 or os.getlogin()=="root":
+    if os.geteuid()==0 or getpass.getuser()!="vaish":
         raise RuntimeError("Run under Ubuntu vaish, not root")
     if not TEMP.is_dir() or not TEMPLATE.is_dir():
         raise RuntimeError("Expected G: Temp or exact Stage 3E workspace missing")
@@ -212,8 +213,6 @@ def main():
             "No matching final GDS and metrics pair; use recorded path inventory before any rerun")
         for item in metrics[:12]:
             put("INFO","Saved metrics candidate",str(item))
-    for label in ("Stage 2C GDS","Stage 2F GDS","Provisional SDC"):
-        pass
     stamp=datetime.now().strftime("%Y%m%d-%H%M%S")
     details=TEMP/f"ASIC-Stage3F-TTSKY-3x2-Artifact-Discovery-{stamp}.json"
     compact=TEMP/f"ASIC-Stage3F-TTSKY-3x2-Summary-{stamp}.txt"

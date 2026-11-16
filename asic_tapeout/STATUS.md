@@ -1,11 +1,11 @@
-# Execution status — 2026-11-15
+# Execution status — updated 2026-11-16
 
 | Gate | Status |
 |---|---|
 | Existing repo baseline inspected and preserved | PASS |
-| G0 Host/WSL2 inspection | PASS — Ubuntu 24.04 on G:, user vaish UID 1000, Linux Git 2.43.0 and clean cloned repo |
-| G1 Freeze UART specification | PENDING |
-| G2 Implement and verify RTL | PENDING |
+| G0 Host/WSL2 + RTL tool smoke tests | PASS — Ubuntu 24.04 on G:, Git, Icarus/Verilator/Yosys counter smoke tests |
+| G1 Freeze UART specification | Functional v0.2 candidate documented; design and shuttle constraints not yet frozen |
+| G2 Implement and verify RTL | Initial TX/RX/core and directed testbench committed; UART regression NOT YET RUN |
 | G3 Synthesis/SDC/pre-route STA | PENDING |
 | G4 Floorplan/place/CTS/route | PENDING |
 | G5 Post-route STA, DRC, LVS and review | PENDING |
@@ -13,7 +13,7 @@
 | G7 Actual submission accepted | PENDING |
 | G8 Real silicon arrived and validated | PENDING |
 
-No EDA tools were installed, simulations executed, physical layouts produced or shuttles booked by this documentation-only commit.
+Historical note: the initial documentation-only commit had no EDA installation or simulation evidence. Subsequent Stage 0I **counter** toolchain smoke tests now passed; the UART candidate regression remains unexecuted on the user's PC. No physical layouts, shuttles, accepted submission or silicon evidence exists.
 
 **2026-11-15 actual Windows preflight (user-provided):** Windows 11 Home Single Language; RAM 15.9 GB; free G: 107.8 GB; Intel i7-9750H. Resources PASS. Git not found in PATH. WSL reports `Wsl/CallMsi/Install/REGDB_E_CLASSNOTREG`. Docker not found (optional). The WSL issue blocks the Linux ASIC toolchain; no repair has been attempted.
 
@@ -43,3 +43,7 @@ No EDA tools were installed, simulations executed, physical layouts produced or 
 **2026-11-16 Stage 0G completion (user-provided): PASS.** After leaving the interactive Ubuntu shell, Stage 0G verified non-root user `vaish` (UID 1000) and Ubuntu release `24.04`. Detailed host log: `G:\C-Drive-Backup-PreReset\Temp\ASIC-Ubuntu-FirstLaunch-20261116-000853.log`. No Linux Git or ASIC EDA tools installed so far. **Next Stage 0H:** run [setup-git-wsl.sh](scripts/setup-git-wsl.sh) from Ubuntu as user `vaish` (single PowerShell download/launch command), installing `git`/`ca-certificates` via Ubuntu apt and cloning public `vaish-machine/rtl-dv-lab` to `/home/vaish/projects/rtl-dv-lab` on the G:-backed ext4 virtual disk. Clone/install remain unverified until user supplies results.
 
 **2026-11-16 Stage 0H completion (user-provided): PASS.** Ubuntu 24.04.5 LTS, Linux `vaish` UID 1000; apt update successful; Linux Git `2.43.0`; cloned `vaish-machine/rtl-dv-lab` into `/home/vaish/projects/rtl-dv-lab` within the G:-backed WSL VHDX, initial local HEAD `1f0a91e6890e` on `main`, clean working tree; original mux UVM and ASIC planning tracks intact. No Windows Git install needed for current Linux workflow. Detailed log `G:\C-Drive-Backup-PreReset\Temp\ASIC-Stage0H-Git-20261115-193712.log` (WSL log timestamp may differ due to Linux timezone). **Next:** [Stage 0I core RTL tool install and smoke tests](scripts/install-rtl-tools-wsl.sh): install Ubuntu-packaged Yosys, Verilator, Icarus, build/Python/Tcl/Z3 tools; run an independent counter self-checking simulation, Verilator lint, and Yosys synthesis. **Stage 0I not yet executed on user's PC**. The local clone will lag subsequent documentation commits until a controlled `git pull --ff-only` later; no automatic pull/overwrite in Stage 0I. No formal physical design or tapeout claims.
+
+**2026-11-16 Stage 0I (user-provided): PASS.** Ubuntu 24.04.5, user vaish UID 1000, APT installed core RTL tools. Versions: Yosys 0.33 (2584903a060), Verilator 5.020, Icarus Verilog 12.0, GCC 13.3.0, Python 3.12.3, Z3 4.8.12. Standalone 4-bit counter Icarus self-checking simulation PASS; Verilator lint PASS; Yosys generic synthesis PASS. Existing rtl-dv-lab working tree remained CLEAN. Log: G:\C-Drive-Backup-PreReset\Temp\ASIC-Stage0I-RTL-20261115-225828.log (Ubuntu timezone can differ). This proves RTL toolchain functionality, not UART correctness or SKY130 mapping.
+
+**Stage 1A (prepared but not yet executed by user):** initial parameterized UART TX, two-FF-synchronized RX, full-duplex core, self-checking directed testbench and guarded WSL runner committed. See SPEC.md v0.2 candidate and scripts/run-uart-baseline-wsl.sh. Script will fast-forward the clean Linux checkout to main, run Icarus simulations at 16 and 8 clocks/bit, Verilator -Wall lint, generic Yosys synthesis/check. Detailed results and build outputs go under G: Temp. IMPORTANT: these tests are NOT claimed PASS until actual output is supplied. UART random/coverage/CDC/formal, SKY130 PDK, OpenROAD/LibreLane flow, signoff and tapeout remain pending.

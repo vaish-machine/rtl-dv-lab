@@ -33,7 +33,7 @@ SDC_HASH="a392f38145b384f86049925902721389a769e20273ab4e1d9d99cc0c9466ffc4"
 SOURCE="712be2f718757d55f6aa7ab154d05f8d050bacac"
 STA_SRC="librelane/scripts/openroad/sta/corner.tcl"
 SPECS=((REF,REF_HASH,"Stage 2C GDS"),(NEW,NEW_HASH,"Stage 2F GDS"),(SDC,SDC_HASH,"Stage 2F SDC"))
-SLACK=re.compile(r"(?im)^\s*slack\s*(?:\([^)]+\))?\s+([-+]?\d+(?:\.\d*)?)\s*$")
+SLACK=re.compile(r"(?i)^\s*(?P<value>[-+]?(?:\d+(?:\.\d*)?|\.\d+))\s+slack(?:\s+\((?P<status>[^)]+)\))?\s*$")
 NO_PATHS=re.compile(r"(?i)\bNo paths found\b")
 HEADERS={
     "unconstrained":"report_checks -unconstrained",
@@ -88,10 +88,34 @@ def first_line(body,regex):
             return row["text"].strip()
     return None
 
-def number_from_line(line):
-    if line is None: return None
-    match=SLACK.search(line)
-    return float(match.group(1)) if match else None
+def parse_slack_row(body):
+    """OpenSTA formats numeric slack BEFORE its label: '84.252 slack (MET)'.
+
+    Return the raw line, numeric value, status, and any candidates that did
+    not match the known timing report grammar. Do not invent zero for missing.
+    """
+    candidates = [
+        row["text"].strip() for row in body
+        if re.search(r"(?i)\bslack(?:\s+\([^)]+\))?\s*$", row["text"])
+    ]
+    hits = [(line, SLACK.fullmatch(line)) for line in candidates]
+    valid = [(line, match) for line, match in hits if match is not None]
+    if len(valid) != 1:
+        return None, None, None, candidates
+    line, match = valid[0]
+    return line, float(match.group("value")), match.group("status"), candidates
+
+def validate_slack_parser():
+    """Fail before reading EDA reports if the parser cannot handle samples."""
+    examples = {
+        "  84.252295   slack (MET)": 84.252295,
+        " -0.125000   slack (VIOLATED)": -0.125,
+        "   0.000000 slack (MET)": 0.0,
+    }
+    for line, expected in examples.items():
+        _, actual, _, _ = parse_slack_row([{"text": line}])
+        if actual != expected:
+            raise RuntimeError(f"OpenSTA slack parser self-test failed: {line}")
 
 def main():
     print("===== ASIC STAGE 2L: UART REAL TIMING PATH COVERAGE AUDIT =====",flush=True)
@@ -99,6 +123,8 @@ def main():
         raise RuntimeError("Expected non-root Ubuntu user vaish")
     if not TEMP.is_dir():
         raise RuntimeError("G: Temp not mounted")
+    validate_slack_parser()
+    put("PASS","OpenSTA slack parser self-test","Leading numeric values in MET/VIOLATED format supported")
     for path,expected,label in SPECS:
         require(path)
         if hash_file(path)!=expected:
@@ -140,8 +166,7 @@ def main():
         group=first_line(u,r"Path Group:")
         external=first_line(u,r"input external delay")
         required=first_line(u,r"data required time")
-        slack=first_line(u,r"^\s*slack\b")
-        numeric_slack=number_from_line(slack)
+        slack,numeric_slack,slack_status,raw_slack_candidates=parse_slack_row(u)
         has_no_neg=any(NO_PATHS.search(x["text"]) for x in n)
         missing_input=first_line(check,r"missing set_input_delay")
         mentioned_rx=any(re.fullmatch(r"\s*rx_i\s*",r["text"]) for r in check)
@@ -152,16 +177,19 @@ def main():
         put("REPORT",corner.name,
             f"tx_valid input delay={'YES' if external else 'NO'}; "
             f"required time={'YES' if required else 'NO'}; "
-            f"slack={numeric_slack}; "
+            f"slack={numeric_slack} ns ({slack_status or 'UNPARSED'}); "
             f"negative-slack empty={'YES' if has_no_neg else 'NO'}; "
             f"missing input delay port={'rx_i' if mentioned_rx else 'UNRESOLVED'}")
         if not qualified:
-            put("REVIEW",corner.name,"Path constraint status cannot be confirmed from all report fields")
+            put("REVIEW",corner.name,
+                "Path status incomplete; raw slack candidate(s): "+repr(raw_slack_candidates[:3]))
         record={
             "corner":corner.name,
             "startpoint":start,"endpoint":endpoint,"path_group":group,
             "input_external_delay_line":external,
             "required_time_line":required,"slack_line":slack,
+            "raw_slack_candidates":raw_slack_candidates,
+            "slack_status":slack_status,
             "numeric_slack_ns":numeric_slack,
             "negative_slack_query_empty":has_no_neg,
             "check_setup_missing_delay_warning":missing_input,
@@ -174,6 +202,9 @@ def main():
         }
         report.append(record)
     put("INFO","Actual numeric slack in inclusive -unconstrained report",f"{valid_slack}/9 corners")
+    if valid_slack == 9:
+        put("PASS","Stage 2L parser correction",
+            "Parsed numeric path slack from all nine preserved OpenSTA checks.rpt files")
     put("INFO","rx_i named in missing-delay warning",f"{rx_warnings}/9 corners")
     if all(item["qualified_report_path"] for item in report):
         put("PASS","tx_valid path classification",
